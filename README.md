@@ -1,1 +1,1 @@
-# Spelunky2SeedFinder
+# Spelunky 2 Seed Finder

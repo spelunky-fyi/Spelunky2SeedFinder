@@ -1,0 +1,6 @@
+[submodule "3rdParty/SHA256"]
+	path = 3rdParty/SHA256
+	url = https://github.com/System-Glitch/SHA256
+[submodule "3rdParty/overlunky"]
+	path = 3rdParty/overlunky
+	url = https://github.com/spelunky-fyi/overlunky
