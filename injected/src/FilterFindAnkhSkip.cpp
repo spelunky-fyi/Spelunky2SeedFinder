@@ -6,6 +6,8 @@ namespace SeedFinder
 {
     uint16_t FilterFindAnkhSkip::msLayerDoorID = 0;
     uint16_t FilterFindAnkhSkip::msPagodaID = 0;
+    const char* FilterFindAnkhSkip::kJSONCheckLayerDoor = "check_layer_door";
+    const char* FilterFindAnkhSkip::kJSONCheckSidePagoda = "check_side_pagoda";
 
     FilterFindAnkhSkip::FilterFindAnkhSkip(SeedFinder* seedFinder) : Filter(seedFinder)
     {
@@ -16,14 +18,30 @@ namespace SeedFinder
         }
     }
 
-    std::string FilterFindAnkhSkip::title() { return "Find Ankh skip"; }
+    std::string FilterFindAnkhSkip::uniqueIdentifier()
+    {
+        return "FilterFindAnkhSkip";
+    }
+
+    std::string FilterFindAnkhSkip::title()
+    {
+        return "Find Ankh skip";
+    }
+
+    std::unique_ptr<FilterFindAnkhSkip> FilterFindAnkhSkip::instantiate(SeedFinder* seedFinder)
+    {
+        return (std::make_unique<FilterFindAnkhSkip>(seedFinder));
+    }
 
     uint8_t FilterFindAnkhSkip::deepestLevel() const
     {
         return 11; // 4-3
     }
 
-    bool FilterFindAnkhSkip::shouldExecute(uint8_t currentWorld, uint8_t currentLevel) { return (currentWorld == 4 && currentLevel == 3); }
+    bool FilterFindAnkhSkip::shouldExecute(uint8_t currentWorld, uint8_t currentLevel)
+    {
+        return (currentWorld == 4 && currentLevel == 3);
+    }
 
     bool FilterFindAnkhSkip::isValid()
     {
@@ -110,4 +128,43 @@ namespace SeedFinder
         Util::log(fmt::format("\tCheck back layer door under lava: {}", mCheckLayerDoor));
         Util::log(fmt::format("\tCheck pagoda at the side: {}", mCheckSidePagoda));
     }
+
+    json FilterFindAnkhSkip::serialize() const
+    {
+        json j;
+        j[SeedFinder::kJSONVersion] = 1;
+        j[SeedFinder::kJSONFilterID] = uniqueIdentifier();
+        j[kJSONCheckLayerDoor] = mCheckLayerDoor;
+        j[kJSONCheckSidePagoda] = mCheckSidePagoda;
+        return j;
+    }
+
+    std::string FilterFindAnkhSkip::unserialize(const json& j)
+    {
+        if (j.contains(SeedFinder::kJSONVersion))
+        {
+            auto version = j.at(SeedFinder::kJSONVersion).get<uint8_t>();
+            if (version == 1)
+            {
+                if (j.contains(kJSONCheckLayerDoor))
+                {
+                    mCheckLayerDoor = j.at(kJSONCheckLayerDoor).get<bool>();
+                }
+                if (j.contains(kJSONCheckSidePagoda))
+                {
+                    mCheckSidePagoda = j.at(kJSONCheckSidePagoda).get<bool>();
+                }
+            }
+            else
+            {
+                return fmt::format("Version mismatch for {}, can't read this version", uniqueIdentifier());
+            }
+        }
+        else
+        {
+            return fmt::format("No version number specified for {}", uniqueIdentifier());
+        }
+        return "";
+    }
+
 } // namespace SeedFinder

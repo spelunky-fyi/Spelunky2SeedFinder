@@ -17,8 +17,13 @@ namespace SeedFinder
         void render() override;
         void writeToLog() override;
         uint8_t deepestLevel() const override;
-        static std::string title();
         void resetForNewSeed(uint32_t newSeed) override;
+        json serialize() const override;
+        std::string unserialize(const json& j) override;
+
+        static std::string title();
+        static std::string uniqueIdentifier();
+        static std::unique_ptr<FilterFindUdjatEye> instantiate(SeedFinder* seedFinder);
 
       private:
         AccessibilityChoice mKeyAccessibility = AccessibilityChoice::MAYBE;
@@ -34,15 +39,17 @@ namespace SeedFinder
         uint8_t mUdjatKeyY = 0;
         uint8_t mCurrentWorld;
         uint8_t mCurrentLevel;
-
-        bool mUdjatKeyFound = false;
-        uint8_t mUdjatKeyFoundOnLevel = 0;
         std::vector<Entity*> mFrontLayerEntities;
         std::vector<Entity*> mBackLayerEntities;
+        bool mUdjatKeyFound = false;
+        uint8_t mUdjatKeyFoundOnLevel = 0;
 
         static uint16_t msUdjatKeyID;
         static uint16_t msUdjatChestID;
         static uint16_t msLayerDoorID;
+        static const char* kJSONAccessibilityDoor;
+        static const char* kJSONAccessibilityKey;
+        static const char* kJSONKeyPosition;
 
         void locateUdjatKeyAndStartDoor();
         void locateUdjatDoor();

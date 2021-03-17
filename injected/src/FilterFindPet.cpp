@@ -1,6 +1,8 @@
 #include "FilterFindPet.h"
 #include "AStar/SimplifiedLevel.h"
+#include "SeedFinder.h"
 #include <iostream>
+
 
 namespace SeedFinder
 {
@@ -27,11 +29,30 @@ namespace SeedFinder
         mLevelsToSearch.disableLevel(7, 4);
     }
 
-    std::string FilterFindPet::title() { return "Find pet"; }
+    std::string FilterFindPet::uniqueIdentifier()
+    {
+        return "FilterFindPet";
+    }
 
-    uint8_t FilterFindPet::deepestLevel() const { return mLevelsToSearch.deepest(); }
+    std::string FilterFindPet::title()
+    {
+        return "Find pet";
+    }
 
-    bool FilterFindPet::shouldExecute(uint8_t currentWorld, uint8_t currentLevel) { return mLevelsToSearch.shouldExecute(currentWorld, currentLevel); }
+    std::unique_ptr<FilterFindPet> FilterFindPet::instantiate(SeedFinder* seedFinder)
+    {
+        return (std::make_unique<FilterFindPet>(seedFinder));
+    }
+
+    uint8_t FilterFindPet::deepestLevel() const
+    {
+        return mLevelsToSearch.deepest();
+    }
+
+    bool FilterFindPet::shouldExecute(uint8_t currentWorld, uint8_t currentLevel)
+    {
+        return mLevelsToSearch.shouldExecute(currentWorld, currentLevel);
+    }
 
     bool FilterFindPet::isValid()
     {
@@ -197,6 +218,44 @@ namespace SeedFinder
         Util::log(fmt::format("- Filter: FilterFindPet"));
         Util::log(fmt::format("\tAccessibility: {}", mAccessibility == AccessibilityChoice::MAYBE ? "ignored" : mAccessibility == AccessibilityChoice::YES ? "yes" : "no"));
         Util::log(fmt::format("\tLevel(s): {}", Util::joinVectorOfStrings(mLevelsToSearch.chosenLevels(), ", ")));
+    }
+
+    json FilterFindPet::serialize() const
+    {
+        json j;
+        j[SeedFinder::kJSONVersion] = 1;
+        j[SeedFinder::kJSONFilterID] = uniqueIdentifier();
+        j[SeedFinder::kJSONAccessibility] = static_cast<int>(mAccessibility);
+        j[SeedFinder::kJSONLevels] = mLevelsToSearch.serialize();
+        return j;
+    }
+
+    std::string FilterFindPet::unserialize(const json& j)
+    {
+        if (j.contains(SeedFinder::kJSONVersion))
+        {
+            auto version = j.at(SeedFinder::kJSONVersion).get<uint8_t>();
+            if (version == 1)
+            {
+                if (j.contains(SeedFinder::kJSONAccessibility))
+                {
+                    mAccessibility = static_cast<AccessibilityChoice>(j.at(SeedFinder::kJSONAccessibility).get<uint8_t>());
+                }
+                if (j.contains(SeedFinder::kJSONLevels))
+                {
+                    mLevelsToSearch.unserialize(j.at(SeedFinder::kJSONLevels));
+                }
+            }
+            else
+            {
+                return fmt::format("Version mismatch for {}, can't read this version", uniqueIdentifier());
+            }
+        }
+        else
+        {
+            return fmt::format("No version number specified for {}", uniqueIdentifier());
+        }
+        return "";
     }
 
 } // namespace SeedFinder

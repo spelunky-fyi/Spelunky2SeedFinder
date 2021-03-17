@@ -6,7 +6,10 @@
 #include <chrono>
 #include <cstdint>
 #include <memory>
+#include <nlohmann/json.hpp>
 #include <vector>
+
+using json = nlohmann::json;
 
 // #define SEEDFINDER_WARPTEST
 
@@ -24,19 +27,14 @@ namespace SeedFinder
         void render();
 
         /**
+         * @brief Registers all filters
+         */
+        void registerFilters();
+
+        /**
          * @brief Makes a copy of all entities
          */
         void registerAllEntities(const std::vector<EntityItem>& entities);
-
-        /**
-         * @brief Registers all filter titles that are available
-         */
-        void registerFilterTitles();
-
-        /**
-         * @brief Add a filter that is to be performed when searching for seeds
-         */
-        void addFilterByTitle(const char* filterTitle);
 
         /**
          * @brief Retrieves the name of an entity by its ID
@@ -53,12 +51,23 @@ namespace SeedFinder
          */
         std::vector<Entity*> entitiesInRect(const Rect& rect, const std::vector<Entity*>& items);
 
+        /**
+         * @brief Retrieves the seed we are currently processing
+         */
         uint32_t currentSeed() const noexcept;
 
         bool areWeGoingToVolcana();
         bool areWeGoingToJungle();
         bool areWeGoingToTemple();
         bool areWeGoingToTidePool();
+
+        static const char* kJSONFilterID;
+        static const char* kJSONVersion;
+        static const char* kJSONAccessibility;
+        static const char* kJSONLevels;
+        static const char* kJSONLayer;
+        static const char* kJSONItem;
+        static const char* kJSONMinimum;
 
       private:
         enum class SeedFinderState
@@ -71,9 +80,16 @@ namespace SeedFinder
             CLEANUP
         };
 
+        enum class InterfaceState
+        {
+            MAIN,
+            IMPORT,
+            EXPORT
+        };
+
         // configuration state
         uint32_t mAmountToProcess = 10;
-        uint32_t msStartSeed = 0;
+        uint32_t mStartSeed = 0;
         bool mUseRandomSeeds = true;
         bool mGoToJungle = true;
         bool mGoToTidePool = true;
@@ -84,6 +100,7 @@ namespace SeedFinder
         uint32_t mAntiFlickerFrameCount = 30;
 
         // seed finder state
+        InterfaceState mInterfaceState = InterfaceState::MAIN;
         SeedFinderState mSeedFinderState = SeedFinderState::IDLE;
         SeedFinderState mSeedFinderNextState = SeedFinderState::IDLE;
         uint32_t mSeedFinderPauseCounter = 0;
@@ -96,10 +113,19 @@ namespace SeedFinder
 
         // filters state
         std::vector<std::unique_ptr<Filter>> mFilters = {};
-        std::vector<std::string> mFilterTitles = {};
+        std::unordered_map<std::string, std::function<std::unique_ptr<Filter>(SeedFinder*)>> mFilterInstantiators; // filter identifier -> instantiator function
+        std::map<std::string, std::string, bool (*)(const std::string&, const std::string&)> mFilterTitles;        // filter title -> filter identifier
         std::vector<EntityItem> mAllEntities = {};
         const char* mComboAddFilterChosenTitle = nullptr;
+        std::string mUnserializationError = "";
 
+        void registerFilter(const std::string& uniqueIdentifier, const std::string& filterTitle, std::function<std::unique_ptr<Filter>(SeedFinder*)> instantiator);
+        Filter* createFilterForIdentifier(const std::string& filterIdentifier);
+        void renderMainInterface();
+        void renderImport();
+        void renderExport();
+        json serialize();
+        void unserialize(const json& o);
         void handleState();
         void initializeNewRun();
         void executeLoadSeed();
@@ -138,5 +164,18 @@ namespace SeedFinder
         static const uint8_t THEME_TIAMAT = 14;
         static const uint8_t THEME_EGGPLANT_WORLD = 15;
         static const uint8_t THEME_HUNDUN = 16;
+
+        static const char* kJSONConfiguration;
+        static const char* kJSONAmountOfSeeds;
+        static const char* kJSONUseRandomSeed;
+        static const char* kJSONStartSeed;
+        static const char* kJSONAntiFlickerFramecount;
+        static const char* kJSONGoToJungle;
+        static const char* kJSONGoToTidePool;
+        static const char* kJSONGoToCityOfGold;
+        static const char* kJSONGoToAbzu;
+        static const char* kJSONGoToDuat;
+        static const char* kJSONGoToEggplantWorld;
+        static const char* kJSONFilters;
     };
 } // namespace SeedFinder

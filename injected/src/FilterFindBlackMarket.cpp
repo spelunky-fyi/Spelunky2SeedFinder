@@ -32,7 +32,20 @@ namespace SeedFinder
         mLevelsToSearch.hideLevel(7, 4);
     }
 
-    std::string FilterFindBlackMarket::title() { return "Find black market"; }
+    std::string FilterFindBlackMarket::uniqueIdentifier()
+    {
+        return "FilterFindBlackMarket";
+    }
+
+    std::string FilterFindBlackMarket::title()
+    {
+        return "Find black market";
+    }
+
+    std::unique_ptr<FilterFindBlackMarket> FilterFindBlackMarket::instantiate(SeedFinder* seedFinder)
+    {
+        return (std::make_unique<FilterFindBlackMarket>(seedFinder));
+    }
 
     uint8_t FilterFindBlackMarket::deepestLevel() const
     {
@@ -158,6 +171,39 @@ namespace SeedFinder
                 break;
             }
         }
+    }
+
+    json FilterFindBlackMarket::serialize() const
+    {
+        json j;
+        j[SeedFinder::kJSONVersion] = 1;
+        j[SeedFinder::kJSONFilterID] = uniqueIdentifier();
+        j[SeedFinder::kJSONLevels] = mLevelsToSearch.serialize();
+        return j;
+    }
+
+    std::string FilterFindBlackMarket::unserialize(const json& j)
+    {
+        if (j.contains(SeedFinder::kJSONVersion))
+        {
+            auto version = j.at(SeedFinder::kJSONVersion).get<uint8_t>();
+            if (version == 1)
+            {
+                if (j.contains(SeedFinder::kJSONLevels))
+                {
+                    mLevelsToSearch.unserialize(j.at(SeedFinder::kJSONLevels));
+                }
+            }
+            else
+            {
+                return fmt::format("Version mismatch for {}, can't read this version", uniqueIdentifier());
+            }
+        }
+        else
+        {
+            return fmt::format("No version number specified for {}", uniqueIdentifier());
+        }
+        return "";
     }
 
 } // namespace SeedFinder

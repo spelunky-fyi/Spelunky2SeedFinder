@@ -1,4 +1,5 @@
 #include "FilterFindVault.h"
+#include "SeedFinder.h"
 
 namespace SeedFinder
 {
@@ -17,11 +18,30 @@ namespace SeedFinder
         mLevelsToSearch.disableLevel(7, 4);
     }
 
-    std::string FilterFindVault::title() { return "Find vault"; }
+    std::string FilterFindVault::uniqueIdentifier()
+    {
+        return "FilterFindVault";
+    }
 
-    uint8_t FilterFindVault::deepestLevel() const { return mLevelsToSearch.deepest(); }
+    std::string FilterFindVault::title()
+    {
+        return "Find vault";
+    }
 
-    bool FilterFindVault::shouldExecute(uint8_t currentWorld, uint8_t currentLevel) { return mLevelsToSearch.shouldExecute(currentWorld, currentLevel); }
+    std::unique_ptr<FilterFindVault> FilterFindVault::instantiate(SeedFinder* seedFinder)
+    {
+        return (std::make_unique<FilterFindVault>(seedFinder));
+    }
+
+    uint8_t FilterFindVault::deepestLevel() const
+    {
+        return mLevelsToSearch.deepest();
+    }
+
+    bool FilterFindVault::shouldExecute(uint8_t currentWorld, uint8_t currentLevel)
+    {
+        return mLevelsToSearch.shouldExecute(currentWorld, currentLevel);
+    }
 
     bool FilterFindVault::isValid()
     {
@@ -66,4 +86,38 @@ namespace SeedFinder
         Util::log(fmt::format("- Filter: FilterFindVault"));
         Util::log(fmt::format("\tLevel(s): {}", Util::joinVectorOfStrings(mLevelsToSearch.chosenLevels(), ", ")));
     }
+
+    json FilterFindVault::serialize() const
+    {
+        json j;
+        j[SeedFinder::kJSONVersion] = 1;
+        j[SeedFinder::kJSONFilterID] = uniqueIdentifier();
+        j[SeedFinder::kJSONLevels] = mLevelsToSearch.serialize();
+        return j;
+    }
+
+    std::string FilterFindVault::unserialize(const json& j)
+    {
+        if (j.contains(SeedFinder::kJSONVersion))
+        {
+            auto version = j.at(SeedFinder::kJSONVersion).get<uint8_t>();
+            if (version == 1)
+            {
+                if (j.contains(SeedFinder::kJSONLevels))
+                {
+                    mLevelsToSearch.unserialize(j.at(SeedFinder::kJSONLevels));
+                }
+            }
+            else
+            {
+                return fmt::format("Version mismatch for {}, can't read this version", uniqueIdentifier());
+            }
+        }
+        else
+        {
+            return fmt::format("No version number specified for {}", uniqueIdentifier());
+        }
+        return "";
+    }
+
 } // namespace SeedFinder

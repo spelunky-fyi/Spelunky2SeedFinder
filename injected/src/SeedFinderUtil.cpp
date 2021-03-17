@@ -33,18 +33,30 @@ namespace SeedFinder
         }
     }
 
-    void Util::startLogging() { msLogStream = std::ofstream("seed-finder.log", std::ios::app); }
+    void Util::startLogging()
+    {
+        msLogStream = std::ofstream("seed-finder.log", std::ios::app);
+    }
 
-    void Util::stopLogging() { msLogStream.close(); }
+    void Util::stopLogging()
+    {
+        msLogStream.close();
+    }
 
     // ************** RECT **************
     Rect::Rect() : x(0), y(0), width(0), height(0) {}
 
     Rect::Rect(float xx, float yy, float ww, float hh) : x(xx), y(yy), width(ww), height(hh) {}
 
-    bool Rect::containsPoint(float xx, float yy) const { return (xx >= x && xx <= x + width && yy >= y && yy <= y + height); }
+    bool Rect::containsPoint(float xx, float yy) const
+    {
+        return (xx >= x && xx <= x + width && yy >= y && yy <= y + height);
+    }
 
-    bool Rect::isValid() const { return (width != 0 && height != 0); }
+    bool Rect::isValid() const
+    {
+        return (width != 0 && height != 0);
+    }
 
     // ************** LEVEL STORAGE **************
     void LevelStorage::all()
@@ -190,13 +202,25 @@ namespace SeedFinder
         return false;
     }
 
-    void LevelStorage::hideLevel(uint8_t level) { hiddenLevels.insert(level); }
+    void LevelStorage::hideLevel(uint8_t level)
+    {
+        hiddenLevels.insert(level);
+    }
 
-    void LevelStorage::disableLevel(uint8_t level) { disabledLevels.insert(level); }
+    void LevelStorage::disableLevel(uint8_t level)
+    {
+        disabledLevels.insert(level);
+    }
 
-    bool LevelStorage::isHidden(uint8_t level) { return (hiddenLevels.count(level) > 0); }
+    bool LevelStorage::isHidden(uint8_t level)
+    {
+        return (hiddenLevels.count(level) > 0);
+    }
 
-    bool LevelStorage::isDisabled(uint8_t level) { return (disabledLevels.count(level) > 0); }
+    bool LevelStorage::isDisabled(uint8_t level)
+    {
+        return (disabledLevels.count(level) > 0);
+    }
 
     void LevelStorage::hideLevel(uint8_t world, uint8_t level)
     {
@@ -310,6 +334,42 @@ namespace SeedFinder
     if (world == 7 && level == 4) { return isDisabled(21); }
         // clang-format on
         return false;
+    }
+
+    json LevelStorage::serialize() const
+    {
+        json j;
+        // clang-format off
+        if (OneOne) { j.push_back("1-1"); } if (OneTwo) { j.push_back("1-2"); } if (OneThree) { j.push_back("1-3"); } if (Quillback) { j.push_back("Quillback"); }
+        if (TwoOne) { j.push_back("2-1"); } if (TwoTwo) { j.push_back("2-2"); } if (TwoThree) { j.push_back("2-3"); } if (TwoFour) { j.push_back("2-4"); }
+        if (Olmec) { j.push_back("Olmec"); }
+        if (FourOne) { j.push_back("4-1"); } if (FourTwo) { j.push_back("4-2"); } if (FourThree) { j.push_back("4-3"); } if (FourFour) { j.push_back("4-4"); }
+        if (IceCaves) { j.push_back("IceCaves"); }
+        if (SixOne) { j.push_back("6-1"); } if (SixTwo) { j.push_back("6-2"); } if (SixThree) { j.push_back("6-3"); } if (Tiamat) { j.push_back("Tiamat"); }
+        if (SevenOne) { j.push_back("7-1"); } if (SevenTwo) { j.push_back("7-2"); } if (SevenThree) { j.push_back("7-3"); } if (Hundun) { j.push_back("Hundun"); }
+        if (Any) { j.push_back("Any"); }
+        // clang-format on
+        return j;
+    }
+
+    std::string LevelStorage::unserialize(const json& j)
+    {
+        none();
+        for (const auto& entry : j)
+        {
+            auto entryStr = entry.get<std::string>();
+            // clang-format off
+            if (entryStr == "1-1") { OneOne = true; } else if (entryStr == "1-2") { OneTwo = true; } else if (entryStr == "1-3") { OneThree = true; } else if (entryStr == "Quillback") { Quillback = true; }
+            else if (entryStr == "2-1") { TwoOne = true; } else if (entryStr == "2-2") { TwoTwo = true; } else if (entryStr == "2-3") { TwoThree = true; } else if (entryStr == "2-4") { TwoFour = true; }
+            else if (entryStr == "Olmec") { Olmec = true; } 
+            else if (entryStr == "4-1") { FourOne = true; } else if (entryStr == "4-2") { FourTwo = true; } else if (entryStr == "4-3") { FourThree = true; } else if (entryStr == "4-4") { FourFour = true; }
+            else if (entryStr == "IceCaves") { IceCaves = true; }
+            else if (entryStr == "6-1") { SixOne = true; } else if (entryStr == "6-2") { SixTwo = true; } else if (entryStr == "6-3") { SixThree = true; } else if (entryStr == "Tiamat") { Tiamat = true; }
+            else if (entryStr == "7-1") { SevenOne = true; } else if (entryStr == "7-2") { SevenTwo = true; } else if (entryStr == "7-3") { SevenThree = true; } else if (entryStr == "Hundun") { Hundun = true; }
+            else if (entryStr == "Any") { Any = true; }
+            // clang-format on
+        }
+        return "";
     }
 
 } // namespace SeedFinder

@@ -2,9 +2,12 @@
 
 #include "entity.hpp"
 #include <fstream>
+#include <nlohmann/json.hpp>
 #include <string>
 #include <unordered_set>
 #include <vector>
+
+using json = nlohmann::json;
 
 namespace SeedFinder
 {
@@ -106,6 +109,9 @@ namespace SeedFinder
         void disableLevel(uint8_t world, uint8_t level);
         bool isHidden(uint8_t world, uint8_t level);
         bool isDisabled(uint8_t world, uint8_t level);
+
+        json serialize() const;
+        std::string unserialize(const json& j);
     };
 
     struct WarpInfo

@@ -1,5 +1,6 @@
 #include "FilterFindAltar.h"
 #include "AStar/SimplifiedLevel.h"
+#include "SeedFinder.h"
 #include <iostream>
 
 namespace SeedFinder
@@ -19,9 +20,19 @@ namespace SeedFinder
         mLevelsToSearch.disableLevel(7, 4);
     }
 
+    std::string FilterFindAltar::uniqueIdentifier()
+    {
+        return "FilterFindAltar";
+    }
+
     std::string FilterFindAltar::title()
     {
         return "Find altar";
+    }
+
+    std::unique_ptr<FilterFindAltar> FilterFindAltar::instantiate(SeedFinder* seedFinder)
+    {
+        return (std::make_unique<FilterFindAltar>(seedFinder));
     }
 
     uint8_t FilterFindAltar::deepestLevel() const
@@ -114,6 +125,44 @@ namespace SeedFinder
         Util::log(fmt::format("- Filter: FilterFindAltar"));
         Util::log(fmt::format("\tAccessibility: {}", mAccessibility == AccessibilityChoice::MAYBE ? "ignored" : mAccessibility == AccessibilityChoice::YES ? "yes" : "no"));
         Util::log(fmt::format("\tLevel(s): {}", Util::joinVectorOfStrings(mLevelsToSearch.chosenLevels(), ", ")));
+    }
+
+    json FilterFindAltar::serialize() const
+    {
+        json j;
+        j[SeedFinder::kJSONVersion] = 1;
+        j[SeedFinder::kJSONFilterID] = uniqueIdentifier();
+        j[SeedFinder::kJSONAccessibility] = static_cast<int>(mAccessibility);
+        j[SeedFinder::kJSONLevels] = mLevelsToSearch.serialize();
+        return j;
+    }
+
+    std::string FilterFindAltar::unserialize(const json& j)
+    {
+        if (j.contains(SeedFinder::kJSONVersion))
+        {
+            auto version = j.at(SeedFinder::kJSONVersion).get<uint8_t>();
+            if (version == 1)
+            {
+                if (j.contains(SeedFinder::kJSONAccessibility))
+                {
+                    mAccessibility = static_cast<AccessibilityChoice>(j.at(SeedFinder::kJSONAccessibility).get<uint8_t>());
+                }
+                if (j.contains(SeedFinder::kJSONLevels))
+                {
+                    mLevelsToSearch.unserialize(j.at(SeedFinder::kJSONLevels));
+                }
+            }
+            else
+            {
+                return fmt::format("Version mismatch for {}, can't read this version", uniqueIdentifier());
+            }
+        }
+        else
+        {
+            return fmt::format("No version number specified for {}", uniqueIdentifier());
+        }
+        return "";
     }
 
 } // namespace SeedFinder

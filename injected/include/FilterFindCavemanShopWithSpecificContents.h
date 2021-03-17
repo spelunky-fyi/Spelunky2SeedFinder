@@ -10,11 +10,18 @@ namespace SeedFinder
       public:
         explicit FilterFindCavemanShopWithSpecificContents(SeedFinder* seedFinder);
         ~FilterFindCavemanShopWithSpecificContents() override = default;
+
+        json serialize() const override;
+        std::string unserialize(const json& j) override;
+
         static std::string title();
+        static std::string uniqueIdentifier();
+        static std::unique_ptr<FilterFindCavemanShopWithSpecificContents> instantiate(SeedFinder* seedFinder);
 
       private:
-        constexpr static size_t cShopItemsCount = 38;
         LayerChoice mLayer = LayerChoice::BACK;
+
+        constexpr static size_t cShopItemsCount = 38;
         static size_t msShopItemIDs[cShopItemsCount];
         static const char* msComboItemOptions[cShopItemsCount];
 

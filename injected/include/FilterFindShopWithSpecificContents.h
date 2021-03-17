@@ -17,14 +17,21 @@ namespace SeedFinder
         void render() override;
         void writeToLog() override;
         uint8_t deepestLevel() const override;
+        json serialize() const override;
+        std::string unserialize(const json& j) override;
 
       protected:
         LevelStorage mLevelsToSearch;
-
-      private:
-        uint32_t mItemIDs[4] = {0};
+        uint16_t mItemIDs[4] = {0};
         const char* mComboChosenItemIDs[4] = {nullptr, nullptr, nullptr, nullptr};
 
+        static const char* kJSONItem1;
+        static const char* kJSONItem2;
+        static const char* kJSONItem3;
+        static const char* kJSONItem4;
+        static const char* msComboItemOptions[4];
+
+      private:
         virtual size_t itemPositionsInShop() const = 0;
         virtual size_t itemPossibilitiesInShop() const = 0;
         virtual size_t shopKeeperID() const = 0;
@@ -34,7 +41,6 @@ namespace SeedFinder
         virtual std::string filterTitle() const = 0;
         virtual const char* comboItemOption(size_t index) const = 0;
 
-        static const char* msComboItemOptions[4];
         static size_t msBGShopID;
         static size_t msPresentID;
     };

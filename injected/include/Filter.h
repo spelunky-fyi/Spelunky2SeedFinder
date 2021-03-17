@@ -4,6 +4,9 @@
 #include "state.hpp"
 #include <cstdint>
 #include <imgui.h>
+#include <nlohmann/json.hpp>
+
+using json = nlohmann::json;
 
 namespace SeedFinder
 {
@@ -42,6 +45,17 @@ namespace SeedFinder
         virtual void writeToLog() = 0;
 
         /**
+         * @brief Serialize the filter to json
+         */
+        virtual json serialize() const = 0;
+
+        /**
+         * @brief Unserialize the provided json-data
+         * @return An error message, or an empty string in case of no errors
+         */
+        virtual std::string unserialize(const json& j) = 0;
+
+        /**
          * @brief Calculate the deepest level to which this filter applies. See the numbers in the comments of the LevelStorage struct, or just pass
          * LevelStorage::deepest()
          */
@@ -61,9 +75,15 @@ namespace SeedFinder
         void setLastError(const std::string& error);
         std::string lastError() const;
 
-        void markAsDeleted() noexcept { mDeleted = true; }
+        void markAsDeleted() noexcept
+        {
+            mDeleted = true;
+        }
 
-        bool isDeleted() const noexcept { return mDeleted; }
+        bool isDeleted() const noexcept
+        {
+            return mDeleted;
+        }
 
         static uint16_t msStartDoorID;
 

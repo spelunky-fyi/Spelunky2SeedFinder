@@ -17,21 +17,26 @@ namespace SeedFinder
         void render() override;
         void writeToLog() override;
         uint8_t deepestLevel() const override;
-        static std::string title();
         void resetForNewSeed(uint32_t newSeed) override;
+        json serialize() const override;
+        std::string unserialize(const json& j) override;
+
+        static std::string title();
+        static std::string uniqueIdentifier();
+        static std::unique_ptr<FilterFindVolcanaDrill> instantiate(SeedFinder* seedFinder);
 
       private:
         LevelStorage mLevelsToSearch;
-        uint8_t mCurrentWorld;
-        uint8_t mCurrentLevel;
-        bool mDrillFound = false;
-        uint8_t mDrillFoundOnLevel = 0;
-        const char* mChosenComparison = msComparisonOptions[0];
         uint16_t mAmountOfLavaBlocks = 100;
+        const char* mChosenComparison = msComparisonOptions[0];
         AccessibilityChoice mShopUnderDrill = AccessibilityChoice::MAYBE;
         AccessibilityChoice mAltarUnderDrill = AccessibilityChoice::MAYBE;
 
+        uint8_t mCurrentWorld;
+        uint8_t mCurrentLevel;
         std::vector<Entity*> mFrontLayerEntities;
+        bool mDrillFound = false;
+        uint8_t mDrillFoundOnLevel = 0;
         uint8_t mDrillX = 0;
 
         static uint16_t msDrillIndicatorID;
@@ -40,6 +45,10 @@ namespace SeedFinder
         static uint16_t msAltarID;
         static uint16_t msShopBGID;
         static const char* msComparisonOptions[];
+        static const char* kJSONAmountOfLavaBlocks;
+        static const char* kJSONComparison;
+        static const char* kJSONShopUnderDrill;
+        static const char* kJSONAltarUnderDrill;
 
         void locateDrill();
     };

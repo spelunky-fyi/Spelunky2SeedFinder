@@ -6,7 +6,6 @@
 #include <codecvt>
 #include <sstream>
 
-
 namespace SeedFinder
 {
     SeedFinder* SeedFinderUI::msSeedFinder = nullptr;
@@ -53,10 +52,11 @@ namespace SeedFinder
 
     bool SeedFinderUI::processKeys(UINT nCode, WPARAM wParam, LPARAM lParam)
     {
-        if (nCode != WM_KEYDOWN)
+        if (nCode != WM_KEYDOWN || ImGui::GetIO().WantCaptureKeyboard)
         {
             return false;
         }
+
         return true;
     }
 

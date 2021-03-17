@@ -3,14 +3,32 @@
 
 namespace SeedFinder
 {
-
     FilterFindEntity::FilterFindEntity(SeedFinder* seedFinder) : Filter(seedFinder) {}
 
-    std::string FilterFindEntity::title() { return "Find entity"; }
+    std::string FilterFindEntity::uniqueIdentifier()
+    {
+        return "FilterFindEntity";
+    }
 
-    uint8_t FilterFindEntity::deepestLevel() const { return mLevelsToSearch.deepest(); }
+    std::string FilterFindEntity::title()
+    {
+        return "Find entity";
+    }
 
-    bool FilterFindEntity::shouldExecute(uint8_t currentWorld, uint8_t currentLevel) { return mLevelsToSearch.shouldExecute(currentWorld, currentLevel); }
+    std::unique_ptr<FilterFindEntity> FilterFindEntity::instantiate(SeedFinder* seedFinder)
+    {
+        return (std::make_unique<FilterFindEntity>(seedFinder));
+    }
+
+    uint8_t FilterFindEntity::deepestLevel() const
+    {
+        return mLevelsToSearch.deepest();
+    }
+
+    bool FilterFindEntity::shouldExecute(uint8_t currentWorld, uint8_t currentLevel)
+    {
+        return mLevelsToSearch.shouldExecute(currentWorld, currentLevel);
+    }
 
     bool FilterFindEntity::isValid()
     {
@@ -107,4 +125,61 @@ namespace SeedFinder
         Util::log(fmt::format("\tLayer: {}", mLayer == LayerChoice::ALL ? "All" : mLayer == LayerChoice::FRONT ? "Front" : "Back"));
         Util::log(fmt::format("\tLevel(s): {}", Util::joinVectorOfStrings(mLevelsToSearch.chosenLevels(), ", ")));
     }
+
+    json FilterFindEntity::serialize() const
+    {
+        json j;
+        j[SeedFinder::kJSONVersion] = 1;
+        j[SeedFinder::kJSONFilterID] = uniqueIdentifier();
+        j[SeedFinder::kJSONItem] = mSeedFinder->entityName(mItemID);
+        j[SeedFinder::kJSONLayer] = static_cast<int>(mLayer);
+        j[SeedFinder::kJSONMinimum] = mMinimumAmount;
+        j[SeedFinder::kJSONLevels] = mLevelsToSearch.serialize();
+        return j;
+    }
+
+    std::string FilterFindEntity::unserialize(const json& j)
+    {
+        if (j.contains(SeedFinder::kJSONVersion))
+        {
+            auto version = j.at(SeedFinder::kJSONVersion).get<uint8_t>();
+            if (version == 1)
+            {
+                if (j.contains(SeedFinder::kJSONItem))
+                {
+                    mItemID = to_id(j.at(SeedFinder::kJSONItem).get<std::string>());
+                    for (const auto& entity : mSeedFinder->allEntities())
+                    {
+                        if (entity.id == mItemID)
+                        {
+                            mComboChosenItem = entity.name.c_str();
+                            break;
+                        }
+                    }
+                }
+                if (j.contains(SeedFinder::kJSONLayer))
+                {
+                    mLayer = static_cast<LayerChoice>(j.at(SeedFinder::kJSONLayer).get<uint8_t>());
+                }
+                if (j.contains(SeedFinder::kJSONMinimum))
+                {
+                    mMinimumAmount = j.at(SeedFinder::kJSONMinimum).get<uint8_t>();
+                }
+                if (j.contains(SeedFinder::kJSONLevels))
+                {
+                    mLevelsToSearch.unserialize(j.at(SeedFinder::kJSONLevels));
+                }
+            }
+            else
+            {
+                return fmt::format("Version mismatch for {}, can't read this version", uniqueIdentifier());
+            }
+        }
+        else
+        {
+            return fmt::format("No version number specified for {}", uniqueIdentifier());
+        }
+        return "";
+    }
+
 } // namespace SeedFinder

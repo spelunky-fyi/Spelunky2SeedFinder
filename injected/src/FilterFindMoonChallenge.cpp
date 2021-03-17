@@ -7,6 +7,8 @@ namespace SeedFinder
     uint16_t FilterFindMoonChallenge::msTunID = 0;
     uint16_t FilterFindMoonChallenge::msMattockID = 0;
     const char* FilterFindMoonChallenge::msComparisonOptions[] = {"less than or equal to", "greater than"};
+    const char* FilterFindMoonChallenge::kJSONMattockDurability = "mattock_durability";
+    const char* FilterFindMoonChallenge::kJSONMattockComparison = "mattock_comparison";
 
     FilterFindMoonChallenge::FilterFindMoonChallenge(SeedFinder* seedFinder) : Filter(seedFinder)
     {
@@ -37,7 +39,20 @@ namespace SeedFinder
         mLevelsToSearch.Any = true;
     }
 
-    std::string FilterFindMoonChallenge::title() { return "Find Moon challenge"; }
+    std::string FilterFindMoonChallenge::uniqueIdentifier()
+    {
+        return "FilterFindMoonChallenge";
+    }
+
+    std::string FilterFindMoonChallenge::title()
+    {
+        return "Find Moon challenge";
+    }
+
+    std::unique_ptr<FilterFindMoonChallenge> FilterFindMoonChallenge::instantiate(SeedFinder* seedFinder)
+    {
+        return (std::make_unique<FilterFindMoonChallenge>(seedFinder));
+    }
 
     uint8_t FilterFindMoonChallenge::deepestLevel() const
     {
@@ -89,7 +104,10 @@ namespace SeedFinder
         }
     }
 
-    bool FilterFindMoonChallenge::isValid() { return true; }
+    bool FilterFindMoonChallenge::isValid()
+    {
+        return true;
+    }
 
     bool FilterFindMoonChallenge::execute(uint8_t currentWorld, uint8_t currentLevel)
     {
@@ -241,6 +259,63 @@ namespace SeedFinder
                 break;
             }
         }
+    }
+
+    json FilterFindMoonChallenge::serialize() const
+    {
+        json j;
+        j[SeedFinder::kJSONVersion] = 1;
+        j[SeedFinder::kJSONFilterID] = uniqueIdentifier();
+        j[SeedFinder::kJSONAccessibility] = static_cast<int>(mAccessibility);
+        j[kJSONMattockDurability] = mMinimumMattockDurability;
+        j[kJSONMattockComparison] = mChosenMattockComparison;
+        j[SeedFinder::kJSONLevels] = mLevelsToSearch.serialize();
+        return j;
+    }
+
+    std::string FilterFindMoonChallenge::unserialize(const json& j)
+    {
+        if (j.contains(SeedFinder::kJSONVersion))
+        {
+            auto version = j.at(SeedFinder::kJSONVersion).get<uint8_t>();
+            if (version == 1)
+            {
+                if (j.contains(SeedFinder::kJSONAccessibility))
+                {
+                    mAccessibility = static_cast<AccessibilityChoice>(j.at(SeedFinder::kJSONAccessibility).get<uint8_t>());
+                }
+                if (j.contains(kJSONMattockDurability))
+                {
+                    mMinimumMattockDurability = j.at(kJSONMattockDurability).get<uint8_t>();
+                }
+                if (j.contains(kJSONMattockComparison))
+                {
+                    auto comparison = j.at(kJSONMattockComparison).get<std::string>();
+                    mChosenMattockComparison = msComparisonOptions[0];
+                    for (auto x = 0; x < 2; ++x)
+                    {
+                        if (comparison == msComparisonOptions[x])
+                        {
+                            mChosenMattockComparison = msComparisonOptions[x];
+                            break;
+                        }
+                    }
+                }
+                if (j.contains(SeedFinder::kJSONLevels))
+                {
+                    mLevelsToSearch.unserialize(j.at(SeedFinder::kJSONLevels));
+                }
+            }
+            else
+            {
+                return fmt::format("Version mismatch for {}, can't read this version", uniqueIdentifier());
+            }
+        }
+        else
+        {
+            return fmt::format("No version number specified for {}", uniqueIdentifier());
+        }
+        return "";
     }
 
 } // namespace SeedFinder

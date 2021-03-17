@@ -75,16 +75,35 @@ namespace SeedFinder
         }
     }
 
-    std::string FilterFindItemInCrust::title() { return "Find item in crust"; }
+    std::string FilterFindItemInCrust::uniqueIdentifier()
+    {
+        return "FilterFindItemInCrust";
+    }
 
-    uint8_t FilterFindItemInCrust::deepestLevel() const { return mLevelsToSearch.deepest(); }
+    std::string FilterFindItemInCrust::title()
+    {
+        return "Find item in crust";
+    }
 
-    bool FilterFindItemInCrust::shouldExecute(uint8_t currentWorld, uint8_t currentLevel) { return mLevelsToSearch.shouldExecute(currentWorld, currentLevel); }
+    std::unique_ptr<FilterFindItemInCrust> FilterFindItemInCrust::instantiate(SeedFinder* seedFinder)
+    {
+        return (std::make_unique<FilterFindItemInCrust>(seedFinder));
+    }
+
+    uint8_t FilterFindItemInCrust::deepestLevel() const
+    {
+        return mLevelsToSearch.deepest();
+    }
+
+    bool FilterFindItemInCrust::shouldExecute(uint8_t currentWorld, uint8_t currentLevel)
+    {
+        return mLevelsToSearch.shouldExecute(currentWorld, currentLevel);
+    }
 
     bool FilterFindItemInCrust::isValid()
     {
         setLastError("");
-        if (mItem == 0)
+        if (mItemID == 0)
         {
             setLastError("Please choose an item");
         }
@@ -93,7 +112,7 @@ namespace SeedFinder
         {
             setLastError("Please choose at least one level");
         }
-        return (levelsValid && mItem != 0);
+        return (levelsValid && mItemID != 0);
     }
 
     bool FilterFindItemInCrust::execute(uint8_t currentWorld, uint8_t currentLevel)
@@ -107,9 +126,9 @@ namespace SeedFinder
                     for (auto x = 0; x < entity->items.count; ++x)
                     {
                         auto testEntity = get_entity_ptr(itemUIDs[x]);
-                        if (testEntity != nullptr && testEntity->type->id == mItem)
+                        if (testEntity != nullptr && testEntity->type->id == mItemID)
                         {
-                            Util::log(fmt::format("- FilterFindItemInCrust: found {} at {}, {}", mSeedFinder->entityName(mItem), entity->x, entity->y));
+                            Util::log(fmt::format("- FilterFindItemInCrust: found {} at {}, {}", mSeedFinder->entityName(mItemID), entity->x, entity->y));
                             return true;
                         }
                     }
@@ -160,7 +179,7 @@ namespace SeedFinder
                     if (ImGui::Selectable(msComboItemOptions[i], isSelected))
                     {
                         mComboChosenItemID = msComboItemOptions[i];
-                        mItem = msCrustItemIDs[i];
+                        mItemID = msCrustItemIDs[i];
                     }
                 }
                 ImGui::EndCombo();
@@ -176,8 +195,59 @@ namespace SeedFinder
     void FilterFindItemInCrust::writeToLog()
     {
         Util::log(fmt::format("- Filter: FilterFindItemInCrust"));
-        Util::log(fmt::format("\tItem ID: {} ({})", mItem, mSeedFinder->entityName(mItem)));
+        Util::log(fmt::format("\tItem ID: {} ({})", mItemID, mSeedFinder->entityName(mItemID)));
         Util::log(fmt::format("\tLayer: {}", mLayer == LayerChoice::ALL ? "All" : mLayer == LayerChoice::FRONT ? "Front" : "Back"));
         Util::log(fmt::format("\tLevel(s): {}", Util::joinVectorOfStrings(mLevelsToSearch.chosenLevels(), ", ")));
     }
+
+    json FilterFindItemInCrust::serialize() const
+    {
+        json j;
+        j[SeedFinder::kJSONVersion] = 1;
+        j[SeedFinder::kJSONFilterID] = uniqueIdentifier();
+        j[SeedFinder::kJSONItem] = mSeedFinder->entityName(mItemID);
+        j[SeedFinder::kJSONLayer] = static_cast<int>(mLayer);
+        j[SeedFinder::kJSONLevels] = mLevelsToSearch.serialize();
+        return j;
+    }
+
+    std::string FilterFindItemInCrust::unserialize(const json& j)
+    {
+        if (j.contains(SeedFinder::kJSONVersion))
+        {
+            auto version = j.at(SeedFinder::kJSONVersion).get<uint8_t>();
+            if (version == 1)
+            {
+                if (j.contains(SeedFinder::kJSONItem))
+                {
+                    mItemID = to_id(j.at(SeedFinder::kJSONItem).get<std::string>());
+                    for (auto x = 0; x < cCrustItemsCount; ++x)
+                    {
+                        if (mItemID == msCrustItemIDs[x])
+                        {
+                            mComboChosenItemID = msComboItemOptions[x];
+                        }
+                    }
+                }
+                if (j.contains(SeedFinder::kJSONLayer))
+                {
+                    mLayer = static_cast<LayerChoice>(j.at(SeedFinder::kJSONLayer).get<uint8_t>());
+                }
+                if (j.contains(SeedFinder::kJSONLevels))
+                {
+                    mLevelsToSearch.unserialize(j.at(SeedFinder::kJSONLevels));
+                }
+            }
+            else
+            {
+                return fmt::format("Version mismatch for {}, can't read this version", uniqueIdentifier());
+            }
+        }
+        else
+        {
+            return fmt::format("No version number specified for {}", uniqueIdentifier());
+        }
+        return "";
+    }
+
 } // namespace SeedFinder

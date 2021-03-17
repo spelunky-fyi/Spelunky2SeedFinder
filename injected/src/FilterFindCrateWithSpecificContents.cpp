@@ -42,11 +42,30 @@ namespace SeedFinder
         }
     }
 
-    std::string FilterFindCrateWithSpecificContents::title() { return "Find crate with specific contents"; }
+    std::string FilterFindCrateWithSpecificContents::uniqueIdentifier()
+    {
+        return "FilterFindCrateWithSpecificContents";
+    }
 
-    uint8_t FilterFindCrateWithSpecificContents::deepestLevel() const { return mLevelsToSearch.deepest(); }
+    std::string FilterFindCrateWithSpecificContents::title()
+    {
+        return "Find crate with specific contents";
+    }
 
-    bool FilterFindCrateWithSpecificContents::shouldExecute(uint8_t currentWorld, uint8_t currentLevel) { return mLevelsToSearch.shouldExecute(currentWorld, currentLevel); }
+    std::unique_ptr<FilterFindCrateWithSpecificContents> FilterFindCrateWithSpecificContents::instantiate(SeedFinder* seedFinder)
+    {
+        return (std::make_unique<FilterFindCrateWithSpecificContents>(seedFinder));
+    }
+
+    uint8_t FilterFindCrateWithSpecificContents::deepestLevel() const
+    {
+        return mLevelsToSearch.deepest();
+    }
+
+    bool FilterFindCrateWithSpecificContents::shouldExecute(uint8_t currentWorld, uint8_t currentLevel)
+    {
+        return mLevelsToSearch.shouldExecute(currentWorld, currentLevel);
+    }
 
     bool FilterFindCrateWithSpecificContents::isValid()
     {
@@ -151,4 +170,60 @@ namespace SeedFinder
         Util::log(fmt::format("\tLayer: {}", mLayer == LayerChoice::ALL ? "All" : mLayer == LayerChoice::FRONT ? "Front" : "Back"));
         Util::log(fmt::format("\tLevel(s): {}", Util::joinVectorOfStrings(mLevelsToSearch.chosenLevels(), ", ")));
     }
+
+    json FilterFindCrateWithSpecificContents::serialize() const
+    {
+        json j;
+        j[SeedFinder::kJSONVersion] = 1;
+        j[SeedFinder::kJSONFilterID] = uniqueIdentifier();
+        j[SeedFinder::kJSONItem] = mSeedFinder->entityName(mItemID);
+        j[SeedFinder::kJSONLayer] = static_cast<int>(mLayer);
+        j[SeedFinder::kJSONMinimum] = mMinimumAmount;
+        j[SeedFinder::kJSONLevels] = mLevelsToSearch.serialize();
+        return j;
+    }
+
+    std::string FilterFindCrateWithSpecificContents::unserialize(const json& j)
+    {
+        if (j.contains(SeedFinder::kJSONVersion))
+        {
+            auto version = j.at(SeedFinder::kJSONVersion).get<uint8_t>();
+            if (version == 1)
+            {
+                if (j.contains(SeedFinder::kJSONItem))
+                {
+                    mItemID = to_id(j.at(SeedFinder::kJSONItem).get<std::string>());
+                    for (auto x = 0; x < cItemCount; ++x)
+                    {
+                        if (mItemID == msComboItemOptionItemIDs[x])
+                        {
+                            mComboChosenItemID = msComboItemOptions[x];
+                        }
+                    }
+                }
+                if (j.contains(SeedFinder::kJSONLayer))
+                {
+                    mLayer = static_cast<LayerChoice>(j.at(SeedFinder::kJSONLayer).get<uint8_t>());
+                }
+                if (j.contains(SeedFinder::kJSONMinimum))
+                {
+                    mMinimumAmount = j.at(SeedFinder::kJSONMinimum).get<uint8_t>();
+                }
+                if (j.contains(SeedFinder::kJSONLevels))
+                {
+                    mLevelsToSearch.unserialize(j.at(SeedFinder::kJSONLevels));
+                }
+            }
+            else
+            {
+                return fmt::format("Version mismatch for {}, can't read this version", uniqueIdentifier());
+            }
+        }
+        else
+        {
+            return fmt::format("No version number specified for {}", uniqueIdentifier());
+        }
+        return "";
+    }
+
 } // namespace SeedFinder

@@ -7,6 +7,9 @@ namespace SeedFinder
     uint16_t FilterFindQuillbackObstruction::msExitDoorID = 0;
     uint16_t FilterFindQuillbackObstruction::msLayerDoorID = 0;
     const char* FilterFindQuillbackObstruction::msExistances[] = {"must not", "must"};
+    const char* FilterFindQuillbackObstruction::kJSONCheckJungleSide = "check_jungle_side";
+    const char* FilterFindQuillbackObstruction::kJSONCheckVolcanaSide = "check_volcana_side";
+    const char* FilterFindQuillbackObstruction::kJSONExistance = "existance";
 
     FilterFindQuillbackObstruction::FilterFindQuillbackObstruction(SeedFinder* seedFinder) : Filter(seedFinder), mCheckJungleSide(true), mCheckVolcanaSide(true), mExistance(msExistances[0])
     {
@@ -17,14 +20,30 @@ namespace SeedFinder
         }
     }
 
-    std::string FilterFindQuillbackObstruction::title() { return "Find Quillback obstruction"; }
+    std::string FilterFindQuillbackObstruction::uniqueIdentifier()
+    {
+        return "FilterFindQuillbackObstruction";
+    }
+
+    std::string FilterFindQuillbackObstruction::title()
+    {
+        return "Find Quillback obstruction";
+    }
+
+    std::unique_ptr<FilterFindQuillbackObstruction> FilterFindQuillbackObstruction::instantiate(SeedFinder* seedFinder)
+    {
+        return (std::make_unique<FilterFindQuillbackObstruction>(seedFinder));
+    }
 
     uint8_t FilterFindQuillbackObstruction::deepestLevel() const
     {
         return 3; // 1-4
     }
 
-    bool FilterFindQuillbackObstruction::shouldExecute(uint8_t currentWorld, uint8_t currentLevel) { return (currentWorld == 1 && currentLevel == 4); }
+    bool FilterFindQuillbackObstruction::shouldExecute(uint8_t currentWorld, uint8_t currentLevel)
+    {
+        return (currentWorld == 1 && currentLevel == 4);
+    }
 
     bool FilterFindQuillbackObstruction::isValid()
     {
@@ -156,4 +175,57 @@ namespace SeedFinder
         Util::log(fmt::format("\tCheck Jungle side: {} | Check Volcana side: {}", mCheckJungleSide, mCheckVolcanaSide));
         Util::log(fmt::format("\tObstruction {} exist", mExistance));
     }
+
+    json FilterFindQuillbackObstruction::serialize() const
+    {
+        json j;
+        j[SeedFinder::kJSONVersion] = 1;
+        j[SeedFinder::kJSONFilterID] = uniqueIdentifier();
+        j[kJSONCheckJungleSide] = mCheckJungleSide;
+        j[kJSONCheckVolcanaSide] = mCheckVolcanaSide;
+        j[kJSONExistance] = mExistance;
+        return j;
+    }
+
+    std::string FilterFindQuillbackObstruction::unserialize(const json& j)
+    {
+        if (j.contains(SeedFinder::kJSONVersion))
+        {
+            auto version = j.at(SeedFinder::kJSONVersion).get<uint8_t>();
+            if (version == 1)
+            {
+                if (j.contains(kJSONCheckJungleSide))
+                {
+                    mCheckJungleSide = j.at(kJSONCheckJungleSide).get<bool>();
+                }
+                if (j.contains(kJSONCheckVolcanaSide))
+                {
+                    mCheckVolcanaSide = j.at(kJSONCheckVolcanaSide).get<bool>();
+                }
+                if (j.contains(kJSONExistance))
+                {
+                    auto existance = j.at(kJSONExistance).get<std::string>();
+                    mExistance = msExistances[0];
+                    for (auto x = 0; x < 2; ++x)
+                    {
+                        if (existance == msExistances[x])
+                        {
+                            mExistance = msExistances[x];
+                            break;
+                        }
+                    }
+                }
+            }
+            else
+            {
+                return fmt::format("Version mismatch for {}, can't read this version", uniqueIdentifier());
+            }
+        }
+        else
+        {
+            return fmt::format("No version number specified for {}", uniqueIdentifier());
+        }
+        return "";
+    }
+
 } // namespace SeedFinder

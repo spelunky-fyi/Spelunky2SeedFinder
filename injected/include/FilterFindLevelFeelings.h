@@ -17,7 +17,12 @@ namespace SeedFinder
         void render() override;
         void writeToLog() override;
         uint8_t deepestLevel() const override;
+        json serialize() const override;
+        std::string unserialize(const json& j) override;
+
         static std::string title();
+        static std::string uniqueIdentifier();
+        static std::unique_ptr<FilterFindLevelFeelings> instantiate(SeedFinder* seedFinder);
 
       private:
         LevelStorage mLevelsToSearch;
@@ -27,5 +32,8 @@ namespace SeedFinder
         constexpr static size_t cFeelingsCount = 7;
         static const char* msComboItemOptions[];
         static const char* msComboItemNecessities[];
+
+        static const char* kJSONFeeling;
+        static const char* kJSONNecessity;
     };
 } // namespace SeedFinder

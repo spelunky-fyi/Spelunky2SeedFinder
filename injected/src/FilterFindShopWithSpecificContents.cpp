@@ -5,6 +5,10 @@ namespace SeedFinder
 {
     size_t FilterFindShopWithSpecificContents::msBGShopID = 0;
     size_t FilterFindShopWithSpecificContents::msPresentID = 0;
+    const char* FilterFindShopWithSpecificContents::kJSONItem1 = "item1";
+    const char* FilterFindShopWithSpecificContents::kJSONItem2 = "item2";
+    const char* FilterFindShopWithSpecificContents::kJSONItem3 = "item3";
+    const char* FilterFindShopWithSpecificContents::kJSONItem4 = "item4";
 
     FilterFindShopWithSpecificContents::FilterFindShopWithSpecificContents(SeedFinder* seedFinder) : Filter(seedFinder)
     {
@@ -15,9 +19,15 @@ namespace SeedFinder
         }
     }
 
-    uint8_t FilterFindShopWithSpecificContents::deepestLevel() const { return mLevelsToSearch.deepest(); }
+    uint8_t FilterFindShopWithSpecificContents::deepestLevel() const
+    {
+        return mLevelsToSearch.deepest();
+    }
 
-    bool FilterFindShopWithSpecificContents::shouldExecute(uint8_t currentWorld, uint8_t currentLevel) { return mLevelsToSearch.shouldExecute(currentWorld, currentLevel); }
+    bool FilterFindShopWithSpecificContents::shouldExecute(uint8_t currentWorld, uint8_t currentLevel)
+    {
+        return mLevelsToSearch.shouldExecute(currentWorld, currentLevel);
+    }
 
     bool FilterFindShopWithSpecificContents::isValid()
     {
@@ -150,7 +160,7 @@ namespace SeedFinder
 
     void FilterFindShopWithSpecificContents::render()
     {
-        const auto renderItemCombo = [&](uint8_t index, const char** selectedValueHolder, uint32_t* valueHolder) {
+        const auto renderItemCombo = [&](uint8_t index, const char** selectedValueHolder, uint16_t* valueHolder) {
             ImGui::PushItemWidth(120);
             if (ImGui::BeginCombo(fmt::format("##SeedFinderFilterFindShopWithSpecificContentsItemID{}{}", index, fmt::ptr(this)).c_str(), *selectedValueHolder))
             {
@@ -203,4 +213,26 @@ namespace SeedFinder
         }
         Util::log(fmt::format("\tLevel(s): {}", Util::joinVectorOfStrings(mLevelsToSearch.chosenLevels(), ", ")));
     }
+
+    json FilterFindShopWithSpecificContents::serialize() const
+    {
+        json j;
+        j[kJSONItem1] = mItemIDs[0] != 0 ? mSeedFinder->entityName(mItemIDs[0]) : "";
+        j[kJSONItem2] = mItemIDs[1] != 0 ? mSeedFinder->entityName(mItemIDs[1]) : "";
+        j[kJSONItem3] = mItemIDs[2] != 0 ? mSeedFinder->entityName(mItemIDs[2]) : "";
+        j[kJSONItem4] = mItemIDs[3] != 0 ? mSeedFinder->entityName(mItemIDs[3]) : "";
+        j[SeedFinder::kJSONLevels] = mLevelsToSearch.serialize();
+        return j;
+    }
+
+    std::string FilterFindShopWithSpecificContents::unserialize(const json& j)
+    {
+        // the items are unserialized in the derived classes, as their names/id's are located there
+        if (j.contains(SeedFinder::kJSONLevels))
+        {
+            mLevelsToSearch.unserialize(j.at(SeedFinder::kJSONLevels));
+        }
+        return "";
+    }
+
 } // namespace SeedFinder

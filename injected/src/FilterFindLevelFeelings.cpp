@@ -7,14 +7,35 @@ namespace SeedFinder
 
     const char* FilterFindLevelFeelings::msComboItemOptions[] = {"", "Darkness", "Voice echoes", "Bee hive", "Dead are restless", "Metal Clanking", "Air of opression"};
     const char* FilterFindLevelFeelings::msComboItemNecessities[] = {"must have", "must not have"};
+    const char* FilterFindLevelFeelings::kJSONFeeling = "feeling";
+    const char* FilterFindLevelFeelings::kJSONNecessity = "necessity";
 
     FilterFindLevelFeelings::FilterFindLevelFeelings(SeedFinder* seedFinder) : Filter(seedFinder) {}
 
-    std::string FilterFindLevelFeelings::title() { return "Find level feelings"; }
+    std::string FilterFindLevelFeelings::uniqueIdentifier()
+    {
+        return "FilterFindLevelFeelings";
+    }
 
-    uint8_t FilterFindLevelFeelings::deepestLevel() const { return mLevelsToSearch.deepest(); }
+    std::string FilterFindLevelFeelings::title()
+    {
+        return "Find level feelings";
+    }
 
-    bool FilterFindLevelFeelings::shouldExecute(uint8_t currentWorld, uint8_t currentLevel) { return mLevelsToSearch.shouldExecute(currentWorld, currentLevel); }
+    std::unique_ptr<FilterFindLevelFeelings> FilterFindLevelFeelings::instantiate(SeedFinder* seedFinder)
+    {
+        return (std::make_unique<FilterFindLevelFeelings>(seedFinder));
+    }
+
+    uint8_t FilterFindLevelFeelings::deepestLevel() const
+    {
+        return mLevelsToSearch.deepest();
+    }
+
+    bool FilterFindLevelFeelings::shouldExecute(uint8_t currentWorld, uint8_t currentLevel)
+    {
+        return mLevelsToSearch.shouldExecute(currentWorld, currentLevel);
+    }
 
     bool FilterFindLevelFeelings::isValid()
     {
@@ -231,4 +252,68 @@ namespace SeedFinder
         Util::log(fmt::format("\tFeeling: {}", mComboChosenFeeling));
         Util::log(fmt::format("\tLevel(s): {}", Util::joinVectorOfStrings(mLevelsToSearch.chosenLevels(), ", ")));
     }
+
+    json FilterFindLevelFeelings::serialize() const
+    {
+        json j;
+        j[SeedFinder::kJSONVersion] = 1;
+        j[SeedFinder::kJSONFilterID] = uniqueIdentifier();
+        j[kJSONFeeling] = mComboChosenFeeling;
+        j[kJSONNecessity] = mComboChosenNecessity;
+        j[SeedFinder::kJSONLevels] = mLevelsToSearch.serialize();
+        return j;
+    }
+
+    std::string FilterFindLevelFeelings::unserialize(const json& j)
+    {
+        if (j.contains(SeedFinder::kJSONVersion))
+        {
+            auto version = j.at(SeedFinder::kJSONVersion).get<uint8_t>();
+            if (version == 1)
+            {
+                if (j.contains(kJSONFeeling))
+                {
+                    auto feeling = j.at(kJSONFeeling).get<std::string>();
+                    mComboChosenFeeling = msComboItemOptions[0];
+                    for (auto x = 0; x < cFeelingsCount; ++x)
+                    {
+                        if (feeling == msComboItemOptions[x])
+                        {
+                            mComboChosenFeeling = msComboItemOptions[x];
+                            break;
+                        }
+                    }
+                }
+
+                if (j.contains(kJSONNecessity))
+                {
+                    auto necessity = j.at(kJSONNecessity).get<std::string>();
+                    mComboChosenNecessity = msComboItemNecessities[0];
+                    for (auto x = 0; x < 2; ++x)
+                    {
+                        if (necessity == msComboItemNecessities[x])
+                        {
+                            mComboChosenNecessity = msComboItemNecessities[x];
+                            break;
+                        }
+                    }
+                }
+
+                if (j.contains(SeedFinder::kJSONLevels))
+                {
+                    mLevelsToSearch.unserialize(j.at(SeedFinder::kJSONLevels));
+                }
+            }
+            else
+            {
+                return fmt::format("Version mismatch for {}, can't read this version", uniqueIdentifier());
+            }
+        }
+        else
+        {
+            return fmt::format("No version number specified for {}", uniqueIdentifier());
+        }
+        return "";
+    }
+
 } // namespace SeedFinder

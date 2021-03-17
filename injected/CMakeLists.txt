@@ -5,6 +5,7 @@ target_include_directories(Spelunky2SeedFinderInjected PRIVATE ../3rdParty/overl
 target_include_directories(Spelunky2SeedFinderInjected PRIVATE ../3rdParty/overlunky/src/imgui)
 target_include_directories(Spelunky2SeedFinderInjected PRIVATE ../3rdParty/overlunky/src/shared/)
 target_include_directories(Spelunky2SeedFinderInjected PRIVATE ../3rdParty/overlunky/src/fmt/include/)
+target_include_directories(Spelunky2SeedFinderInjected PUBLIC ../3rdParty/json/single_include/)
 
 target_link_libraries(Spelunky2SeedFinderInjected fmt Shlwapi)
 

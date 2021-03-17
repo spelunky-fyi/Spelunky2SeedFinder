@@ -10,6 +10,10 @@ namespace SeedFinder
     uint16_t FilterFindVolcanaDrill::msAltarID = 0;
     uint16_t FilterFindVolcanaDrill::msShopBGID = 0;
     const char* FilterFindVolcanaDrill::msComparisonOptions[] = {"less than or equal to", "greater than"};
+    const char* FilterFindVolcanaDrill::kJSONAmountOfLavaBlocks = "amount_of_lava_blocks";
+    const char* FilterFindVolcanaDrill::kJSONComparison = "comparison";
+    const char* FilterFindVolcanaDrill::kJSONShopUnderDrill = "shop_under_drill";
+    const char* FilterFindVolcanaDrill::kJSONAltarUnderDrill = "altar_under_drill";
 
     FilterFindVolcanaDrill::FilterFindVolcanaDrill(SeedFinder* seedFinder) : Filter(seedFinder)
     {
@@ -43,7 +47,20 @@ namespace SeedFinder
         mLevelsToSearch.Any = true;
     }
 
-    std::string FilterFindVolcanaDrill::title() { return "Find Volcana drill"; }
+    std::string FilterFindVolcanaDrill::uniqueIdentifier()
+    {
+        return "FilterFindVolcanaDrill";
+    }
+
+    std::string FilterFindVolcanaDrill::title()
+    {
+        return "Find Volcana drill";
+    }
+
+    std::unique_ptr<FilterFindVolcanaDrill> FilterFindVolcanaDrill::instantiate(SeedFinder* seedFinder)
+    {
+        return (std::make_unique<FilterFindVolcanaDrill>(seedFinder));
+    }
 
     uint8_t FilterFindVolcanaDrill::deepestLevel() const
     {
@@ -323,6 +340,68 @@ namespace SeedFinder
                 break;
             }
         }
+    }
+
+    json FilterFindVolcanaDrill::serialize() const
+    {
+        json j;
+        j[SeedFinder::kJSONVersion] = 1;
+        j[SeedFinder::kJSONFilterID] = uniqueIdentifier();
+        j[kJSONAmountOfLavaBlocks] = mAmountOfLavaBlocks;
+        j[kJSONShopUnderDrill] = static_cast<int>(mShopUnderDrill);
+        j[kJSONAltarUnderDrill] = static_cast<int>(mAltarUnderDrill);
+        j[kJSONComparison] = mChosenComparison;
+        j[SeedFinder::kJSONLevels] = mLevelsToSearch.serialize();
+        return j;
+    }
+
+    std::string FilterFindVolcanaDrill::unserialize(const json& j)
+    {
+        if (j.contains(SeedFinder::kJSONVersion))
+        {
+            auto version = j.at(SeedFinder::kJSONVersion).get<uint8_t>();
+            if (version == 1)
+            {
+                if (j.contains(kJSONAmountOfLavaBlocks))
+                {
+                    mAmountOfLavaBlocks = j.at(kJSONAmountOfLavaBlocks).get<uint16_t>();
+                }
+                if (j.contains(kJSONShopUnderDrill))
+                {
+                    mShopUnderDrill = static_cast<AccessibilityChoice>(j.at(kJSONShopUnderDrill).get<uint8_t>());
+                }
+                if (j.contains(kJSONAltarUnderDrill))
+                {
+                    mAltarUnderDrill = static_cast<AccessibilityChoice>(j.at(kJSONAltarUnderDrill).get<uint8_t>());
+                }
+                if (j.contains(kJSONComparison))
+                {
+                    auto c = j.at(kJSONComparison).get<std::string>();
+                    mChosenComparison = msComparisonOptions[0];
+                    for (auto x = 0; x < 2; ++x)
+                    {
+                        if (c == msComparisonOptions[x])
+                        {
+                            mChosenComparison = msComparisonOptions[x];
+                            break;
+                        }
+                    }
+                }
+                if (j.contains(SeedFinder::kJSONLevels))
+                {
+                    mLevelsToSearch.unserialize(j.at(SeedFinder::kJSONLevels));
+                }
+            }
+            else
+            {
+                return fmt::format("Version mismatch for {}, can't read this version", uniqueIdentifier());
+            }
+        }
+        else
+        {
+            return fmt::format("No version number specified for {}", uniqueIdentifier());
+        }
+        return "";
     }
 
 } // namespace SeedFinder

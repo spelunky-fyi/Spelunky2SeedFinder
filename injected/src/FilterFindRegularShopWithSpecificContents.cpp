@@ -91,17 +91,45 @@ namespace SeedFinder
         mLevelsToSearch.disableLevel(7, 4);
     }
 
-    std::string FilterFindRegularShopWithSpecificContents::title() { return "Find regular shop with specific contents"; }
+    std::string FilterFindRegularShopWithSpecificContents::uniqueIdentifier()
+    {
+        return "FilterFindRegularShopWithSpecificContents";
+    }
 
-    std::string FilterFindRegularShopWithSpecificContents::filterTitle() const { return FilterFindRegularShopWithSpecificContents::title(); }
+    std::string FilterFindRegularShopWithSpecificContents::title()
+    {
+        return "Find regular shop with specific contents";
+    }
 
-    size_t FilterFindRegularShopWithSpecificContents::itemPositionsInShop() const { return 4; }
+    std::unique_ptr<FilterFindRegularShopWithSpecificContents> FilterFindRegularShopWithSpecificContents::instantiate(SeedFinder* seedFinder)
+    {
+        return (std::make_unique<FilterFindRegularShopWithSpecificContents>(seedFinder));
+    }
 
-    size_t FilterFindRegularShopWithSpecificContents::itemPossibilitiesInShop() const { return cShopItemsCount; }
+    std::string FilterFindRegularShopWithSpecificContents::filterTitle() const
+    {
+        return FilterFindRegularShopWithSpecificContents::title();
+    }
 
-    size_t FilterFindRegularShopWithSpecificContents::shopItemID(int8_t index) const { return msShopItemIDs[index]; }
+    size_t FilterFindRegularShopWithSpecificContents::itemPositionsInShop() const
+    {
+        return 4;
+    }
 
-    const char* FilterFindRegularShopWithSpecificContents::comboItemOption(size_t index) const { return msComboItemOptions[index]; }
+    size_t FilterFindRegularShopWithSpecificContents::itemPossibilitiesInShop() const
+    {
+        return cShopItemsCount;
+    }
+
+    size_t FilterFindRegularShopWithSpecificContents::shopItemID(int8_t index) const
+    {
+        return msShopItemIDs[index];
+    }
+
+    const char* FilterFindRegularShopWithSpecificContents::comboItemOption(size_t index) const
+    {
+        return msComboItemOptions[index];
+    }
 
     size_t FilterFindRegularShopWithSpecificContents::shopKeeperID() const
     {
@@ -113,7 +141,68 @@ namespace SeedFinder
         return identifier;
     }
 
-    LayerChoice* FilterFindRegularShopWithSpecificContents::searchInLayer() { return &mLayer; }
+    LayerChoice* FilterFindRegularShopWithSpecificContents::searchInLayer()
+    {
+        return &mLayer;
+    }
 
-    bool FilterFindRegularShopWithSpecificContents::showLayerCombo() const { return true; }
+    bool FilterFindRegularShopWithSpecificContents::showLayerCombo() const
+    {
+        return true;
+    }
+
+    json FilterFindRegularShopWithSpecificContents::serialize() const
+    {
+        auto j = FilterFindShopWithSpecificContents::serialize();
+        j[SeedFinder::kJSONVersion] = 1;
+        j[SeedFinder::kJSONFilterID] = uniqueIdentifier();
+        j[SeedFinder::kJSONLayer] = static_cast<int>(mLayer);
+        return j;
+    }
+
+    std::string FilterFindRegularShopWithSpecificContents::unserialize(const json& j)
+    {
+        FilterFindShopWithSpecificContents::unserialize(j);
+        if (j.contains(SeedFinder::kJSONVersion))
+        {
+            auto version = j.at(SeedFinder::kJSONVersion).get<uint8_t>();
+            if (version == 1)
+            {
+                static const std::vector<const char*> items = {kJSONItem1, kJSONItem2, kJSONItem3, kJSONItem4};
+                uint8_t counter = 0;
+                for (const auto& itemNumber : items)
+                {
+                    if (j.contains(itemNumber))
+                    {
+                        auto idString = j.at(itemNumber).get<std::string>();
+                        auto id = to_id(idString);
+                        for (auto x = 0; x < cShopItemsCount; ++x)
+                        {
+                            if (id == msShopItemIDs[x])
+                            {
+                                mItemIDs[counter] = id;
+                                mComboChosenItemIDs[counter] = msComboItemOptions[x];
+                            }
+                        }
+                    }
+                    counter++;
+                }
+
+                if (j.contains(SeedFinder::kJSONLayer))
+                {
+                    mLayer = static_cast<LayerChoice>(j.at(SeedFinder::kJSONLayer).get<uint8_t>());
+                }
+            }
+            else
+            {
+                return fmt::format("Version mismatch for {}, can't read this version", uniqueIdentifier());
+            }
+        }
+        else
+        {
+            return fmt::format("No version number specified for {}", uniqueIdentifier());
+        }
+        return "";
+    }
+
 } // namespace SeedFinder

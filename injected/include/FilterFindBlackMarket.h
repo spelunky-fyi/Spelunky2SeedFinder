@@ -17,11 +17,17 @@ namespace SeedFinder
         void render() override;
         void writeToLog() override;
         uint8_t deepestLevel() const override;
-        static std::string title();
+        json serialize() const override;
         void resetForNewSeed(uint32_t newSeed) override;
+        std::string unserialize(const json& j) override;
+
+        static std::string title();
+        static std::string uniqueIdentifier();
+        static std::unique_ptr<FilterFindBlackMarket> instantiate(SeedFinder* seedFinder);
 
       private:
         LevelStorage mLevelsToSearch;
+
         uint8_t mCurrentWorld;
         uint8_t mCurrentLevel;
         bool mBlackMarketFound = false;

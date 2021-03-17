@@ -7,6 +7,9 @@ namespace SeedFinder
     uint16_t FilterFindUdjatEye::msUdjatKeyID = 0;
     uint16_t FilterFindUdjatEye::msUdjatChestID = 0;
     uint16_t FilterFindUdjatEye::msLayerDoorID = 0;
+    const char* FilterFindUdjatEye::kJSONAccessibilityDoor = "accessibility_door";
+    const char* FilterFindUdjatEye::kJSONAccessibilityKey = "accessibility_key";
+    const char* FilterFindUdjatEye::kJSONKeyPosition = "key_position";
 
     FilterFindUdjatEye::FilterFindUdjatEye(SeedFinder* seedFinder) : Filter(seedFinder), mUdjatKeyFound(false)
     {
@@ -39,7 +42,20 @@ namespace SeedFinder
         mLevelsToSearch.Any = true;
     }
 
-    std::string FilterFindUdjatEye::title() { return "Find Udjat Eye"; }
+    std::string FilterFindUdjatEye::uniqueIdentifier()
+    {
+        return "FilterFindUdjatEye";
+    }
+
+    std::string FilterFindUdjatEye::title()
+    {
+        return "Find Udjat Eye";
+    }
+
+    std::unique_ptr<FilterFindUdjatEye> FilterFindUdjatEye::instantiate(SeedFinder* seedFinder)
+    {
+        return (std::make_unique<FilterFindUdjatEye>(seedFinder));
+    }
 
     void FilterFindUdjatEye::resetForNewSeed(uint32_t newSeed)
     {
@@ -91,7 +107,10 @@ namespace SeedFinder
         }
     }
 
-    bool FilterFindUdjatEye::isValid() { return true; }
+    bool FilterFindUdjatEye::isValid()
+    {
+        return true;
+    }
 
     bool FilterFindUdjatEye::execute(uint8_t currentWorld, uint8_t currentLevel)
     {
@@ -291,4 +310,53 @@ namespace SeedFinder
         Util::log(fmt::format("\tKey position: {}", mKeyPosition == PositionChoice::WHEREVER ? "wherever" : mKeyPosition == PositionChoice::HIGHER ? "higher than the door" : "lower than the door"));
         Util::log(fmt::format("\tLevel: {}", Util::joinVectorOfStrings(mLevelsToSearch.chosenLevels(), ", ")));
     }
+
+    json FilterFindUdjatEye::serialize() const
+    {
+        json j;
+        j[SeedFinder::kJSONVersion] = 1;
+        j[SeedFinder::kJSONFilterID] = uniqueIdentifier();
+        j[kJSONAccessibilityKey] = static_cast<int>(mKeyAccessibility);
+        j[kJSONAccessibilityDoor] = static_cast<int>(mDoorAccessibility);
+        j[kJSONKeyPosition] = static_cast<int>(mKeyPosition);
+        j[SeedFinder::kJSONLevels] = mLevelsToSearch.serialize();
+        return j;
+    }
+
+    std::string FilterFindUdjatEye::unserialize(const json& j)
+    {
+        if (j.contains(SeedFinder::kJSONVersion))
+        {
+            auto version = j.at(SeedFinder::kJSONVersion).get<uint8_t>();
+            if (version == 1)
+            {
+                if (j.contains(kJSONAccessibilityKey))
+                {
+                    mKeyAccessibility = static_cast<AccessibilityChoice>(j.at(kJSONAccessibilityKey).get<uint8_t>());
+                }
+                if (j.contains(kJSONAccessibilityDoor))
+                {
+                    mDoorAccessibility = static_cast<AccessibilityChoice>(j.at(kJSONAccessibilityDoor).get<uint8_t>());
+                }
+                if (j.contains(kJSONKeyPosition))
+                {
+                    mKeyPosition = static_cast<PositionChoice>(j.at(kJSONKeyPosition).get<uint8_t>());
+                }
+                if (j.contains(SeedFinder::kJSONLevels))
+                {
+                    mLevelsToSearch.unserialize(j.at(SeedFinder::kJSONLevels));
+                }
+            }
+            else
+            {
+                return fmt::format("Version mismatch for {}, can't read this version", uniqueIdentifier());
+            }
+        }
+        else
+        {
+            return fmt::format("No version number specified for {}", uniqueIdentifier());
+        }
+        return "";
+    }
+
 } // namespace SeedFinder

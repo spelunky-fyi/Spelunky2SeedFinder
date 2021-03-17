@@ -8,6 +8,8 @@ namespace SeedFinder
     uint16_t FilterFindVanHorsing::msLayerDoorID = 0;
     uint16_t FilterFindVanHorsing::msVanHorsingID = 0;
     uint16_t FilterFindVanHorsing::msKeyID = 0;
+    const char* FilterFindVanHorsing::kJSONAccessibilityDoor = "accessibility_door";
+    const char* FilterFindVanHorsing::kJSONAccessibilityKey = "accessibility_key";
 
     FilterFindVanHorsing::FilterFindVanHorsing(SeedFinder* seedFinder) : Filter(seedFinder)
     {
@@ -19,14 +21,30 @@ namespace SeedFinder
         }
     }
 
-    std::string FilterFindVanHorsing::title() { return "Find Van Horsing"; }
+    std::string FilterFindVanHorsing::uniqueIdentifier()
+    {
+        return "FilterFindVanHorsing";
+    }
+
+    std::string FilterFindVanHorsing::title()
+    {
+        return "Find Van Horsing";
+    }
+
+    std::unique_ptr<FilterFindVanHorsing> FilterFindVanHorsing::instantiate(SeedFinder* seedFinder)
+    {
+        return (std::make_unique<FilterFindVanHorsing>(seedFinder));
+    }
 
     uint8_t FilterFindVanHorsing::deepestLevel() const
     {
         return 4; // 2-1
     }
 
-    bool FilterFindVanHorsing::shouldExecute(uint8_t currentWorld, uint8_t currentLevel) { return (currentWorld == 2 && currentLevel == 1); }
+    bool FilterFindVanHorsing::shouldExecute(uint8_t currentWorld, uint8_t currentLevel)
+    {
+        return (currentWorld == 2 && currentLevel == 1);
+    }
 
     bool FilterFindVanHorsing::isValid()
     {
@@ -180,4 +198,43 @@ namespace SeedFinder
                                                                                                                                 : "no"));
         Util::log(fmt::format("\tVan Horsing's key accessibility: {}", mKeyAccessibility == AccessibilityChoice::MAYBE ? "ignored" : mKeyAccessibility == AccessibilityChoice::YES ? "yes" : "no"));
     }
+
+    json FilterFindVanHorsing::serialize() const
+    {
+        json j;
+        j[SeedFinder::kJSONVersion] = 1;
+        j[SeedFinder::kJSONFilterID] = uniqueIdentifier();
+        j[kJSONAccessibilityDoor] = static_cast<int>(mHorsingDoorAccessibility);
+        j[kJSONAccessibilityKey] = static_cast<int>(mKeyAccessibility);
+        return j;
+    }
+
+    std::string FilterFindVanHorsing::unserialize(const json& j)
+    {
+        if (j.contains(SeedFinder::kJSONVersion))
+        {
+            auto version = j.at(SeedFinder::kJSONVersion).get<uint8_t>();
+            if (version == 1)
+            {
+                if (j.contains(kJSONAccessibilityKey))
+                {
+                    mKeyAccessibility = static_cast<AccessibilityChoice>(j.at(kJSONAccessibilityKey).get<uint8_t>());
+                }
+                if (j.contains(kJSONAccessibilityDoor))
+                {
+                    mHorsingDoorAccessibility = static_cast<AccessibilityChoice>(j.at(kJSONAccessibilityDoor).get<uint8_t>());
+                }
+            }
+            else
+            {
+                return fmt::format("Version mismatch for {}, can't read this version", uniqueIdentifier());
+            }
+        }
+        else
+        {
+            return fmt::format("No version number specified for {}", uniqueIdentifier());
+        }
+        return "";
+    }
+
 } // namespace SeedFinder

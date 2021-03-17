@@ -38,10 +38,31 @@ namespace SeedFinder
 {
     struct StateMemory* g_state = nullptr;
     uint16_t SeedFinder::mEggplantMotherStatueHandID = 0;
+    const char* SeedFinder::kJSONVersion = "version";
+    const char* SeedFinder::kJSONConfiguration = "configuration";
+    const char* SeedFinder::kJSONAmountOfSeeds = "amount_of_seeds";
+    const char* SeedFinder::kJSONUseRandomSeed = "use_random_seed";
+    const char* SeedFinder::kJSONStartSeed = "start_seed";
+    const char* SeedFinder::kJSONAntiFlickerFramecount = "anti_flicker_framecount";
+    const char* SeedFinder::kJSONGoToJungle = "go_to_jungle";
+    const char* SeedFinder::kJSONGoToTidePool = "go_to_tidepool";
+    const char* SeedFinder::kJSONGoToCityOfGold = "go_to_city_of_gold";
+    const char* SeedFinder::kJSONGoToAbzu = "go_to_abzu";
+    const char* SeedFinder::kJSONGoToDuat = "go_to_duat";
+    const char* SeedFinder::kJSONGoToEggplantWorld = "go_to_eggplant_world";
+    const char* SeedFinder::kJSONFilters = "filters";
+    const char* SeedFinder::kJSONFilterID = "id";
+    const char* SeedFinder::kJSONAccessibility = "accessibility";
+    const char* SeedFinder::kJSONLevels = "levels";
+    const char* SeedFinder::kJSONLayer = "layer";
+    const char* SeedFinder::kJSONItem = "item";
+    const char* SeedFinder::kJSONMinimum = "minimum";
 
     SeedFinder::SeedFinder()
     {
-        registerFilterTitles();
+        mFilterTitles = std::map<std::string, std::string, bool (*)(const std::string&, const std::string&)>(
+            [](const std::string& a, const std::string& b) -> bool { return (_stricmp(a.c_str(), b.c_str()) < 0); });
+        registerFilters();
     }
 
     void SeedFinder::registerAllEntities(const std::vector<EntityItem>& entities)
@@ -51,9 +72,53 @@ namespace SeedFinder
         std::sort(mAllEntities.begin(), mAllEntities.end(), [](const EntityItem& a, const EntityItem& b) -> bool { return (a.name.compare(b.name) < 0); });
     }
 
+    void SeedFinder::registerFilters()
+    {
+        registerFilter(FilterFindAltar::uniqueIdentifier(), FilterFindAltar::title(), &FilterFindAltar::instantiate);
+        registerFilter(FilterFindAnkhSkip::uniqueIdentifier(), FilterFindAnkhSkip::title(), &FilterFindAnkhSkip::instantiate);
+        registerFilter(FilterFindBlackMarket::uniqueIdentifier(), FilterFindBlackMarket::title(), &FilterFindBlackMarket::instantiate);
+        registerFilter(FilterFindCavemanShopWithSpecificContents::uniqueIdentifier(), FilterFindCavemanShopWithSpecificContents::title(), &FilterFindCavemanShopWithSpecificContents::instantiate);
+        registerFilter(FilterFindCrateWithSpecificContents::uniqueIdentifier(), FilterFindCrateWithSpecificContents::title(), &FilterFindCrateWithSpecificContents::instantiate);
+        registerFilter(FilterFindDiceShop::uniqueIdentifier(), FilterFindDiceShop::title(), &FilterFindDiceShop::instantiate);
+        registerFilter(FilterFindEntity::uniqueIdentifier(), FilterFindEntity::title(), &FilterFindEntity::instantiate);
+        registerFilter(FilterFindGhostJar::uniqueIdentifier(), FilterFindGhostJar::title(), &FilterFindGhostJar::instantiate);
+        registerFilter(FilterFindItemInCrust::uniqueIdentifier(), FilterFindItemInCrust::title(), &FilterFindItemInCrust::instantiate);
+        registerFilter(FilterFindLevelFeelings::uniqueIdentifier(), FilterFindLevelFeelings::title(), &FilterFindLevelFeelings::instantiate);
+        registerFilter(FilterFindMoonChallenge::uniqueIdentifier(), FilterFindMoonChallenge::title(), &FilterFindMoonChallenge::instantiate);
+        registerFilter(FilterFindPet::uniqueIdentifier(), FilterFindPet::title(), &FilterFindPet::instantiate);
+        registerFilter(FilterFindPotWithSpecificContents::uniqueIdentifier(), FilterFindPotWithSpecificContents::title(), &FilterFindPotWithSpecificContents::instantiate);
+        registerFilter(FilterFindQuillbackObstruction::uniqueIdentifier(), FilterFindQuillbackObstruction::title(), &FilterFindQuillbackObstruction::instantiate);
+        registerFilter(FilterFindRegularShopWithSpecificContents::uniqueIdentifier(), FilterFindRegularShopWithSpecificContents::title(), &FilterFindRegularShopWithSpecificContents::instantiate);
+        registerFilter(FilterFindSisters::uniqueIdentifier(), FilterFindSisters::title(), &FilterFindSisters::instantiate);
+        registerFilter(FilterFindSunChallenge::uniqueIdentifier(), FilterFindSunChallenge::title(), &FilterFindSunChallenge::instantiate);
+        registerFilter(FilterFindTunShopWithSpecificContents::uniqueIdentifier(), FilterFindTunShopWithSpecificContents::title(), &FilterFindTunShopWithSpecificContents::instantiate);
+        registerFilter(FilterFindUdjatEye::uniqueIdentifier(), FilterFindUdjatEye::title(), &FilterFindUdjatEye::instantiate);
+        registerFilter(FilterFindVanHorsing::uniqueIdentifier(), FilterFindVanHorsing::title(), &FilterFindVanHorsing::instantiate);
+        registerFilter(FilterFindVault::uniqueIdentifier(), FilterFindVault::title(), &FilterFindVault::instantiate);
+        registerFilter(FilterFindVolcanaDrill::uniqueIdentifier(), FilterFindVolcanaDrill::title(), &FilterFindVolcanaDrill::instantiate);
+    }
+
     const std::vector<EntityItem>& SeedFinder::allEntities()
     {
         return mAllEntities;
+    }
+
+    void SeedFinder::registerFilter(const std::string& uniqueIdentifier, const std::string& filterTitle, std::function<std::unique_ptr<Filter>(SeedFinder*)> instantiator)
+    {
+        mFilterInstantiators[uniqueIdentifier] = instantiator;
+        mFilterTitles[filterTitle] = uniqueIdentifier;
+    }
+
+    Filter* SeedFinder::createFilterForIdentifier(const std::string& filterIdentifier)
+    {
+        if (mFilterInstantiators.count(filterIdentifier) > 0)
+        {
+            auto instance = mFilterInstantiators[filterIdentifier](this);
+            Filter* returnPtr = instance.get();
+            mFilters.emplace_back(std::move(instance));
+            return returnPtr;
+        }
+        return nullptr;
     }
 
     uint32_t SeedFinder::currentSeed() const noexcept
@@ -61,371 +126,486 @@ namespace SeedFinder
         return mCurrentSeed;
     }
 
-    void SeedFinder::registerFilterTitles()
-    {
-        mFilterTitles.emplace_back(FilterFindCrateWithSpecificContents::title());
-        mFilterTitles.emplace_back(FilterFindRegularShopWithSpecificContents::title());
-        mFilterTitles.emplace_back(FilterFindTunShopWithSpecificContents::title());
-        mFilterTitles.emplace_back(FilterFindCavemanShopWithSpecificContents::title());
-        mFilterTitles.emplace_back(FilterFindAltar::title());
-        mFilterTitles.emplace_back(FilterFindUdjatEye::title());
-        mFilterTitles.emplace_back(FilterFindVolcanaDrill::title());
-        mFilterTitles.emplace_back(FilterFindBlackMarket::title());
-        mFilterTitles.emplace_back(FilterFindQuillbackObstruction::title());
-        mFilterTitles.emplace_back(FilterFindItemInCrust::title());
-        mFilterTitles.emplace_back(FilterFindVault::title());
-        mFilterTitles.emplace_back(FilterFindDiceShop::title());
-        mFilterTitles.emplace_back(FilterFindLevelFeelings::title());
-        mFilterTitles.emplace_back(FilterFindPet::title());
-        mFilterTitles.emplace_back(FilterFindEntity::title());
-        mFilterTitles.emplace_back(FilterFindMoonChallenge::title());
-        mFilterTitles.emplace_back(FilterFindSunChallenge::title());
-        mFilterTitles.emplace_back(FilterFindGhostJar::title());
-        mFilterTitles.emplace_back(FilterFindSisters::title());
-        mFilterTitles.emplace_back(FilterFindPotWithSpecificContents::title());
-        mFilterTitles.emplace_back(FilterFindAnkhSkip::title());
-        mFilterTitles.emplace_back(FilterFindVanHorsing::title());
-
-        std::sort(mFilterTitles.begin(), mFilterTitles.end(), [](const std::string& a, const std::string& b) -> bool { return (_stricmp(a.c_str(), b.c_str()) < 0); });
-    }
-
-    void SeedFinder::addFilterByTitle(const char* filterTitle)
-    {
-        if (filterTitle == FilterFindCrateWithSpecificContents::title())
-        {
-            mFilters.emplace_back(std::make_unique<FilterFindCrateWithSpecificContents>(this));
-        }
-        else if (filterTitle == FilterFindRegularShopWithSpecificContents::title())
-        {
-            mFilters.emplace_back(std::make_unique<FilterFindRegularShopWithSpecificContents>(this));
-        }
-        else if (filterTitle == FilterFindTunShopWithSpecificContents::title())
-        {
-            mFilters.emplace_back(std::make_unique<FilterFindTunShopWithSpecificContents>(this));
-        }
-        else if (filterTitle == FilterFindCavemanShopWithSpecificContents::title())
-        {
-            mFilters.emplace_back(std::make_unique<FilterFindCavemanShopWithSpecificContents>(this));
-        }
-        else if (filterTitle == FilterFindAltar::title())
-        {
-            mFilters.emplace_back(std::make_unique<FilterFindAltar>(this));
-        }
-        else if (filterTitle == FilterFindUdjatEye::title())
-        {
-            mFilters.emplace_back(std::make_unique<FilterFindUdjatEye>(this));
-        }
-        else if (filterTitle == FilterFindVolcanaDrill::title())
-        {
-            mFilters.emplace_back(std::make_unique<FilterFindVolcanaDrill>(this));
-        }
-        else if (filterTitle == FilterFindBlackMarket::title())
-        {
-            mFilters.emplace_back(std::make_unique<FilterFindBlackMarket>(this));
-        }
-        else if (filterTitle == FilterFindQuillbackObstruction::title())
-        {
-            mFilters.emplace_back(std::make_unique<FilterFindQuillbackObstruction>(this));
-        }
-        else if (filterTitle == FilterFindItemInCrust::title())
-        {
-            mFilters.emplace_back(std::make_unique<FilterFindItemInCrust>(this));
-        }
-        else if (filterTitle == FilterFindVault::title())
-        {
-            mFilters.emplace_back(std::make_unique<FilterFindVault>(this));
-        }
-        else if (filterTitle == FilterFindDiceShop::title())
-        {
-            mFilters.emplace_back(std::make_unique<FilterFindDiceShop>(this));
-        }
-        else if (filterTitle == FilterFindLevelFeelings::title())
-        {
-            mFilters.emplace_back(std::make_unique<FilterFindLevelFeelings>(this));
-        }
-        else if (filterTitle == FilterFindPet::title())
-        {
-            mFilters.emplace_back(std::make_unique<FilterFindPet>(this));
-        }
-        else if (filterTitle == FilterFindEntity::title())
-        {
-            mFilters.emplace_back(std::make_unique<FilterFindEntity>(this));
-        }
-        else if (filterTitle == FilterFindMoonChallenge::title())
-        {
-            mFilters.emplace_back(std::make_unique<FilterFindMoonChallenge>(this));
-        }
-        else if (filterTitle == FilterFindSunChallenge::title())
-        {
-            mFilters.emplace_back(std::make_unique<FilterFindSunChallenge>(this));
-        }
-        else if (filterTitle == FilterFindGhostJar::title())
-        {
-            mFilters.emplace_back(std::make_unique<FilterFindGhostJar>(this));
-        }
-        else if (filterTitle == FilterFindSisters::title())
-        {
-            mFilters.emplace_back(std::make_unique<FilterFindSisters>(this));
-        }
-        else if (filterTitle == FilterFindPotWithSpecificContents::title())
-        {
-            mFilters.emplace_back(std::make_unique<FilterFindPotWithSpecificContents>(this));
-        }
-        else if (filterTitle == FilterFindAnkhSkip::title())
-        {
-            mFilters.emplace_back(std::make_unique<FilterFindAnkhSkip>(this));
-        }
-        else if (filterTitle == FilterFindVanHorsing::title())
-        {
-            mFilters.emplace_back(std::make_unique<FilterFindVanHorsing>(this));
-        }
-    }
-
     void SeedFinder::render()
     {
-        if (mSeedFinderState != SeedFinderState::IDLE || (g_state->ingame && g_state->playing))
+        if (true || mSeedFinderState != SeedFinderState::IDLE || (g_state->ingame && g_state->playing))
         {
-            bool allFiltersValid = areAllFiltersValid();
-            // ************* CONFIGURATION *************
-            ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 10);
-            ImGui::Text("Configuration");
-
-            ImGui::SetCursorPosX(gSectionMarginHor);
-            ImGui::AlignTextToFramePadding();
-            ImGui::Text("Amount of seeds to process :");
-            ImGui::SameLine();
-            ImGui::PushItemWidth(100);
-            ImGui::InputScalar("##SeedFinderAmountOfSeeds", ImGuiDataType_U32, &mAmountToProcess);
-
-            ImGui::SetCursorPosX(gSectionMarginHor);
-            ImGui::Checkbox("Generate random seeds, or start at seed:##SeedFinderGenerateRandomSeeds", &mUseRandomSeeds);
-            ImGui::SameLine();
-            ImGui::InputScalar("##SeedFinderStartAtSeed", ImGuiDataType_U32, &msStartSeed, 0, 0, "%08X", ImGuiInputTextFlags_CharsHexadecimal | (mUseRandomSeeds ? ImGuiInputTextFlags_ReadOnly : 0));
-
-            ImGui::SetCursorPosX(gSectionMarginHor);
-            ImGui::AlignTextToFramePadding();
-            ImGui::Text("Anti flicker frames :");
-            ImGui::SameLine();
-            ImGui::InputScalar("##SeedFinderAntiFlickerFrameCount", ImGuiDataType_U32, &mAntiFlickerFrameCount);
-
-            auto deepestLevel = deepestLevelOfAllFilters();
-            if (mGoToAbzu)
+            switch (mInterfaceState)
             {
-                mGoToCityOfGold = false;
-                mGoToDuat = false;
-                mGoToTidePool = true;
+            case InterfaceState::MAIN:
+                renderMainInterface();
+                break;
+            case InterfaceState::IMPORT:
+                renderImport();
+                break;
+            case InterfaceState::EXPORT:
+                renderExport();
+                break;
             }
-            if (mGoToCityOfGold || mGoToDuat)
-            {
-                mGoToAbzu = false;
-                mGoToTidePool = false;
-                if (mGoToDuat)
-                {
-                    mGoToCityOfGold = true;
-                }
-            }
-
-            if (deepestLevel > gThresholdChooseJungleVolcana)
-            {
-                ImGui::SetCursorPosX(gSectionMarginHor);
-                ImGui::Text("Go to :");
-                ImGui::SameLine();
-                if (ImGui::RadioButton("Jungle##SeedFinderGoToJungle", mGoToJungle))
-                {
-                    mGoToJungle = true;
-                }
-                ImGui::SameLine();
-                if (ImGui::RadioButton("Volcana##SeedFinderGoToVolcana", !mGoToJungle))
-                {
-                    mGoToJungle = false;
-                }
-            }
-            if (deepestLevel > gThresholdChooseTidePoolTemple)
-            {
-                ImGui::SetCursorPosX(gSectionMarginHor);
-                ImGui::Text("Go to :");
-                ImGui::SameLine();
-                if (ImGui::RadioButton("Tide Pool##SeedFinderGoToTidePool", mGoToTidePool))
-                {
-                    mGoToCityOfGold = false;
-                    mGoToDuat = false;
-                    mGoToTidePool = true;
-                }
-                ImGui::SameLine();
-                ImGui::Checkbox("Abzu##SeedFinderGoToAbzu", &mGoToAbzu);
-
-                ImGui::SameLine();
-                if (ImGui::RadioButton("Temple", !mGoToTidePool))
-                {
-                    mGoToAbzu = false;
-                    mGoToTidePool = false;
-                }
-                ImGui::SameLine();
-                ImGui::Checkbox("City of Gold##SeedFinderGoToCityOfGold", &mGoToCityOfGold);
-                ImGui::SameLine();
-                ImGui::Checkbox("Duat##SeedFinderGoToDuat", &mGoToDuat);
-            }
-            if (deepestLevel > gThresholdChooseEggplantWorld)
-            {
-                ImGui::SetCursorPosX(gSectionMarginHor);
-                ImGui::Text("Go to :");
-                ImGui::SameLine();
-                ImGui::Checkbox("Eggplant World##SeedFinderGoToEggplantWorld", &mGoToEggplantWorld);
-            }
-
-            ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 5);
-            ImGui::Separator();
-            ImGui::Separator();
-            ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 5);
-
-            // ************* FILTERS *************
-            ImGui::Text("Filter(s)");
-            ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 10);
-
-            for (const auto& filter : mFilters)
-            {
-                filter->render();
-                ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 5);
-                auto error = filter->lastError();
-                if (!error.empty())
-                {
-                    ImGui::SetCursorPosX(gSectionMarginHor * 2);
-                    ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f), error.c_str());
-                }
-            }
-            if (mFilters.size() > 0)
-            {
-                ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 10);
-            }
-
-            ImGui::SetCursorPosX(gSectionMarginHor);
-            ImGui::PushItemWidth(250);
-            if (ImGui::BeginCombo("##SeedFinderComboAddFilter", mComboAddFilterChosenTitle))
-            {
-                for (auto i = 0; i < mFilterTitles.size(); ++i)
-                {
-                    bool isSelected = (mComboAddFilterChosenTitle == mFilterTitles.at(i).c_str());
-                    if (ImGui::Selectable(mFilterTitles.at(i).c_str(), isSelected))
-                    {
-                        mComboAddFilterChosenTitle = mFilterTitles.at(i).c_str();
-                    }
-                }
-                ImGui::EndCombo();
-            }
-            ImGui::SameLine();
-            if (ImGui::Button("Add filter##SeedFinderAddFilter"))
-            {
-                addFilterByTitle(mComboAddFilterChosenTitle);
-            }
-
-            ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 5);
-            ImGui::Separator();
-            ImGui::Separator();
-            ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 5);
-
-            // ************* START BUTTON *************
-            if (!allFiltersValid)
-            {
-                const char* caption = "Please configure the filters to search";
-                ImGui::SetCursorPos(ImVec2((ImGui::GetWindowSize().x / 2.) - (ImGui::CalcTextSize(caption).x / 2.), ImGui::GetCursorPosY() + 10));
-                ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f), caption);
-                ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 10);
-            }
-            else
-            {
-                if (mSeedFinderState == SeedFinderState::IDLE)
-                {
-                    static const float buttonWidth = 80;
-                    ImGui::SetCursorPos(ImVec2((ImGui::GetWindowSize().x / 2.) - (buttonWidth / 2.), ImGui::GetCursorPosY() + 10));
-                    if (ImGui::Button("Find Seeds##SeedFinderFindSeeds", ImVec2(buttonWidth, 0)))
-                    {
-                        pause(30, SeedFinderState::INIT);
-                    }
-                }
-                else
-                {
-                    static const float buttonWidth = 80;
-                    ImGui::SetCursorPos(ImVec2((ImGui::GetWindowSize().x / 2.) - (buttonWidth / 2.), ImGui::GetCursorPosY() + 10));
-                    if (ImGui::Button("Cancel##SeedFinderCancel", ImVec2(buttonWidth, 0)))
-                    {
-                        Util::log("Cancelled");
-                        mSeedFinderState = SeedFinderState::CLEANUP;
-                    }
-                }
-            }
-
-#ifdef SEEDFINDER_WARPTEST
-            static const float buttonWidth = 80;
-            ImGui::SetCursorPos(ImVec2((ImGui::GetWindowSize().x / 2.) - (buttonWidth / 2.), ImGui::GetCursorPosY() + 10));
-            if (ImGui::Button("Warp Test##SeedFinderWarpTestButton", ImVec2(buttonWidth, 0)))
-            {
-                warpTest();
-            }
-#endif
-
-            ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 5);
-            ImGui::Separator();
-            ImGui::Separator();
-            ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 5);
-
-            // ************* FOUND SEEDS *************
-            ImGui::Text("Found seed(s)");
-
-            static const uint32_t seedButtonWidth = 90;
-            static const uint32_t seedButtonMargin = 10;
-
-            if (mSeedFinderState == SeedFinderState::EXECUTE_FILTERS || mSeedFinderState == SeedFinderState::EXECUTE_LOAD_SEED || mSeedFinderState == SeedFinderState::PAUSE)
-            {
-                const char* caption = fmt::format("Processing seed {:08X}...", mCurrentSeed).c_str();
-                ImGui::SetCursorPos(ImVec2((ImGui::GetWindowSize().x / 2.) - (ImGui::CalcTextSize(caption).x / 2.), ImGui::GetCursorPosY()));
-                ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f), caption);
-                caption = "Spelunky will freeze while searching, please be patient";
-                ImGui::SetCursorPos(ImVec2((ImGui::GetWindowSize().x / 2.) - (ImGui::CalcTextSize(caption).x / 2.), ImGui::GetCursorPosY()));
-                ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f), caption);
-                ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 10);
-            }
-            else if (mFoundSeeds.empty())
-            {
-                const char* caption = "No seeds found...";
-                ImGui::SetCursorPos(ImVec2((ImGui::GetWindowSize().x / 2.) - (ImGui::CalcTextSize(caption).x / 2.), ImGui::GetCursorPosY()));
-                ImGui::TextColored(ImVec4(0.5f, 0.5f, 0.5f, 1.0f), caption);
-                ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 10);
-            }
-            else
-            {
-                uint32_t x = gSectionMarginHor;
-                bool first = true;
-                for (const auto& foundSeed : mFoundSeeds)
-                {
-                    if (!first)
-                    {
-                        ImGui::SameLine();
-                    }
-                    if (first || !((ImGui::GetCursorPosX() + seedButtonWidth) < (ImGui::GetWindowSize().x - gSectionMarginHor)))
-                    {
-                        ImGui::NewLine();
-                        ImGui::SetCursorPosX(gSectionMarginHor);
-                    }
-                    first = false;
-
-                    if (ImGui::Button(fmt::format("{:08X}##SeedFinderLoadSeed{}", foundSeed, foundSeed).c_str(), ImVec2(seedButtonWidth, 0)))
-                    {
-                        setGameSeed(foundSeed);
-                    }
-                }
-                ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 10);
-            }
-
-            handleState();
-
-            // clean up deleted filters
-            mFilters.erase(std::remove_if(mFilters.begin(), mFilters.end(), [](const std::unique_ptr<Filter>& f) { return f->isDeleted(); }), mFilters.end());
         }
         else
         {
             const char* caption = "To search for seeds, please make sure you are in an actual level.";
             ImGui::SetCursorPos(ImVec2((ImGui::GetWindowSize().x / 2.) - (ImGui::CalcTextSize(caption).x / 2.), ImGui::GetCursorPosY() + 40));
             ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f), caption);
+        }
+    }
+
+    void SeedFinder::renderMainInterface()
+    {
+        static const float buttonWidth = 80;
+        bool allFiltersValid = areAllFiltersValid();
+        // ************* CONFIGURATION *************
+        ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 10);
+        ImGui::Text("Configuration");
+
+        ImGui::SameLine();
+        ImGui::SetCursorPosX(ImGui::GetWindowSize().x - buttonWidth - 10);
+        if (ImGui::Button("Import##SeedFinderImportButton", ImVec2(buttonWidth, 0)))
+        {
+            mInterfaceState = InterfaceState::IMPORT;
+        }
+        if (allFiltersValid)
+        {
+            ImGui::SameLine();
+            ImGui::SetCursorPosX(ImGui::GetWindowSize().x - (buttonWidth * 2) - 15);
+            if (ImGui::Button("Export##SeedFinderExportButton", ImVec2(buttonWidth, 0)))
+            {
+                mInterfaceState = InterfaceState::EXPORT;
+            }
+        }
+
+        ImGui::SetCursorPosX(gSectionMarginHor);
+        ImGui::AlignTextToFramePadding();
+        ImGui::Text("Amount of seeds to process :");
+        ImGui::SameLine();
+        ImGui::PushItemWidth(100);
+        ImGui::InputScalar("##SeedFinderAmountOfSeeds", ImGuiDataType_U32, &mAmountToProcess);
+
+        ImGui::SetCursorPosX(gSectionMarginHor);
+        ImGui::Checkbox("Generate random seeds, or start at seed:##SeedFinderGenerateRandomSeeds", &mUseRandomSeeds);
+        ImGui::SameLine();
+        ImGui::InputScalar("##SeedFinderStartAtSeed", ImGuiDataType_U32, &mStartSeed, 0, 0, "%08X", ImGuiInputTextFlags_CharsHexadecimal | (mUseRandomSeeds ? ImGuiInputTextFlags_ReadOnly : 0));
+
+        ImGui::SetCursorPosX(gSectionMarginHor);
+        ImGui::AlignTextToFramePadding();
+        ImGui::Text("Anti flicker frames :");
+        ImGui::SameLine();
+        ImGui::InputScalar("##SeedFinderAntiFlickerFrameCount", ImGuiDataType_U32, &mAntiFlickerFrameCount);
+
+        auto deepestLevel = deepestLevelOfAllFilters();
+        if (mGoToAbzu)
+        {
+            mGoToCityOfGold = false;
+            mGoToDuat = false;
+            mGoToTidePool = true;
+        }
+        if (mGoToCityOfGold || mGoToDuat)
+        {
+            mGoToAbzu = false;
+            mGoToTidePool = false;
+            if (mGoToDuat)
+            {
+                mGoToCityOfGold = true;
+            }
+        }
+
+        if (deepestLevel > gThresholdChooseJungleVolcana)
+        {
+            ImGui::SetCursorPosX(gSectionMarginHor);
+            ImGui::Text("Go to :");
+            ImGui::SameLine();
+            if (ImGui::RadioButton("Jungle##SeedFinderGoToJungle", mGoToJungle))
+            {
+                mGoToJungle = true;
+            }
+            ImGui::SameLine();
+            if (ImGui::RadioButton("Volcana##SeedFinderGoToVolcana", !mGoToJungle))
+            {
+                mGoToJungle = false;
+            }
+        }
+        if (deepestLevel > gThresholdChooseTidePoolTemple)
+        {
+            ImGui::SetCursorPosX(gSectionMarginHor);
+            ImGui::Text("Go to :");
+            ImGui::SameLine();
+            if (ImGui::RadioButton("Tide Pool##SeedFinderGoToTidePool", mGoToTidePool))
+            {
+                mGoToCityOfGold = false;
+                mGoToDuat = false;
+                mGoToTidePool = true;
+            }
+            ImGui::SameLine();
+            ImGui::Checkbox("Abzu##SeedFinderGoToAbzu", &mGoToAbzu);
+
+            ImGui::SameLine();
+            if (ImGui::RadioButton("Temple", !mGoToTidePool))
+            {
+                mGoToAbzu = false;
+                mGoToTidePool = false;
+            }
+            ImGui::SameLine();
+            ImGui::Checkbox("City of Gold##SeedFinderGoToCityOfGold", &mGoToCityOfGold);
+            ImGui::SameLine();
+            ImGui::Checkbox("Duat##SeedFinderGoToDuat", &mGoToDuat);
+        }
+        if (deepestLevel > gThresholdChooseEggplantWorld)
+        {
+            ImGui::SetCursorPosX(gSectionMarginHor);
+            ImGui::Text("Go to :");
+            ImGui::SameLine();
+            ImGui::Checkbox("Eggplant World##SeedFinderGoToEggplantWorld", &mGoToEggplantWorld);
+        }
+
+        ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 5);
+        ImGui::Separator();
+        ImGui::Separator();
+        ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 5);
+
+        // ************* FILTERS *************
+        ImGui::Text("Filter(s)");
+        ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 10);
+
+        for (const auto& filter : mFilters)
+        {
+            filter->render();
+            ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 5);
+            auto error = filter->lastError();
+            if (!error.empty())
+            {
+                ImGui::SetCursorPosX(gSectionMarginHor * 2);
+                ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f), error.c_str());
+            }
+        }
+        if (mFilters.size() > 0)
+        {
+            ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 10);
+        }
+
+        ImGui::SetCursorPosX(gSectionMarginHor);
+        ImGui::PushItemWidth(250);
+        if (ImGui::BeginCombo("##SeedFinderComboAddFilter", mComboAddFilterChosenTitle))
+        {
+            for (const auto& kv : mFilterTitles)
+            {
+                bool isSelected = (mComboAddFilterChosenTitle == kv.first.c_str());
+                if (ImGui::Selectable(kv.first.c_str(), isSelected))
+                {
+                    mComboAddFilterChosenTitle = kv.first.c_str();
+                }
+            }
+            ImGui::EndCombo();
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Add filter##SeedFinderAddFilter"))
+        {
+            if (mFilterTitles.count(mComboAddFilterChosenTitle) > 0)
+            {
+                createFilterForIdentifier(mFilterTitles.at(mComboAddFilterChosenTitle));
+            }
+        }
+
+        ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 5);
+        ImGui::Separator();
+        ImGui::Separator();
+        ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 5);
+
+        // ************* START BUTTON *************
+        if (!allFiltersValid)
+        {
+            const char* caption = "Please configure the filters to search";
+            ImGui::SetCursorPos(ImVec2((ImGui::GetWindowSize().x / 2.) - (ImGui::CalcTextSize(caption).x / 2.), ImGui::GetCursorPosY() + 10));
+            ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f), caption);
+            ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 10);
+        }
+        else
+        {
+            if (mSeedFinderState == SeedFinderState::IDLE)
+            {
+                ImGui::SetCursorPos(ImVec2((ImGui::GetWindowSize().x / 2.) - (buttonWidth / 2.), ImGui::GetCursorPosY() + 10));
+                if (ImGui::Button("Find Seeds##SeedFinderFindSeeds", ImVec2(buttonWidth, 0)))
+                {
+                    pause(30, SeedFinderState::INIT);
+                }
+            }
+            else
+            {
+                ImGui::SetCursorPos(ImVec2((ImGui::GetWindowSize().x / 2.) - (buttonWidth / 2.), ImGui::GetCursorPosY() + 10));
+                if (ImGui::Button("Cancel##SeedFinderCancel", ImVec2(buttonWidth, 0)))
+                {
+                    Util::log("Cancelled");
+                    mSeedFinderState = SeedFinderState::CLEANUP;
+                }
+            }
+        }
+
+#ifdef SEEDFINDER_WARPTEST
+        static const float buttonWidth = 80;
+        ImGui::SetCursorPos(ImVec2((ImGui::GetWindowSize().x / 2.) - (buttonWidth / 2.), ImGui::GetCursorPosY() + 10));
+        if (ImGui::Button("Warp Test##SeedFinderWarpTestButton", ImVec2(buttonWidth, 0)))
+        {
+            warpTest();
+        }
+#endif
+
+        ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 5);
+        ImGui::Separator();
+        ImGui::Separator();
+        ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 5);
+
+        // ************* FOUND SEEDS *************
+        ImGui::Text("Found seed(s)");
+
+        static const uint32_t seedButtonWidth = 90;
+        static const uint32_t seedButtonMargin = 10;
+
+        if (mSeedFinderState == SeedFinderState::EXECUTE_FILTERS || mSeedFinderState == SeedFinderState::EXECUTE_LOAD_SEED || mSeedFinderState == SeedFinderState::PAUSE)
+        {
+            const char* caption = fmt::format("Processing seed {:08X}...", mCurrentSeed).c_str();
+            ImGui::SetCursorPos(ImVec2((ImGui::GetWindowSize().x / 2.) - (ImGui::CalcTextSize(caption).x / 2.), ImGui::GetCursorPosY()));
+            ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f), caption);
+            caption = "Spelunky will freeze while searching, please be patient";
+            ImGui::SetCursorPos(ImVec2((ImGui::GetWindowSize().x / 2.) - (ImGui::CalcTextSize(caption).x / 2.), ImGui::GetCursorPosY()));
+            ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f), caption);
+            ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 10);
+        }
+        else if (mFoundSeeds.empty())
+        {
+            const char* caption = "No seeds found...";
+            ImGui::SetCursorPos(ImVec2((ImGui::GetWindowSize().x / 2.) - (ImGui::CalcTextSize(caption).x / 2.), ImGui::GetCursorPosY()));
+            ImGui::TextColored(ImVec4(0.5f, 0.5f, 0.5f, 1.0f), caption);
+            ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 10);
+        }
+        else
+        {
+            uint32_t x = gSectionMarginHor;
+            bool first = true;
+            for (const auto& foundSeed : mFoundSeeds)
+            {
+                if (!first)
+                {
+                    ImGui::SameLine();
+                }
+                if (first || !((ImGui::GetCursorPosX() + seedButtonWidth) < (ImGui::GetWindowSize().x - gSectionMarginHor)))
+                {
+                    ImGui::NewLine();
+                    ImGui::SetCursorPosX(gSectionMarginHor);
+                }
+                first = false;
+
+                if (ImGui::Button(fmt::format("{:08X}##SeedFinderLoadSeed{}", foundSeed, foundSeed).c_str(), ImVec2(seedButtonWidth, 0)))
+                {
+                    setGameSeed(foundSeed);
+                }
+            }
+            ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 10);
+        }
+
+        handleState();
+
+        // clean up deleted filters
+        mFilters.erase(std::remove_if(mFilters.begin(), mFilters.end(), [](const std::unique_ptr<Filter>& f) { return f->isDeleted(); }), mFilters.end());
+    }
+
+    void SeedFinder::renderImport()
+    {
+        ImGui::Text("Import");
+
+        ImGui::SetCursorPosX(gSectionMarginHor);
+        ImGui::Text("Please paste the json information in the field below");
+
+        ImGui::SetCursorPosX(gSectionMarginHor);
+        constexpr size_t bufferSize = 1024 * 500;
+        static char buffer[bufferSize] = {0};
+        if (ImGui::InputTextMultiline("##SeedFinderImportJSON", buffer, bufferSize, {ImGui::GetWindowSize().x - (gSectionMarginHor * 2), ImGui::GetWindowSize().y - ImGui::GetCursorPosY() - 60}))
+        {
+            mUnserializationError = "";
+        }
+
+        if (!mUnserializationError.empty())
+        {
+            ImGui::SetCursorPosX(gSectionMarginHor);
+            ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f), mUnserializationError.c_str());
+        }
+
+        ImGui::SetCursorPosX(gSectionMarginHor);
+        if (ImGui::Button("Import##SeedFinderPerformImport"))
+        {
+            try
+            {
+                auto j = json::parse(buffer);
+                unserialize(j);
+            }
+            catch (const json::exception& e)
+            {
+                mUnserializationError = e.what();
+            }
+            catch (...)
+            {
+                mUnserializationError = "Error parsing the provided JSON data";
+            }
+            if (mUnserializationError.empty())
+            {
+                mInterfaceState = InterfaceState::MAIN;
+            }
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Cancel##SeedFinderCancelImport"))
+        {
+            mInterfaceState = InterfaceState::MAIN;
+        }
+    }
+
+    void SeedFinder::renderExport()
+    {
+        ImGui::Text("Export");
+
+        ImGui::SetCursorPosX(gSectionMarginHor);
+        ImGui::Text("Please copy the json information below and store it somewhere");
+
+        ImGui::SetCursorPosX(gSectionMarginHor);
+        auto j = serialize();
+        auto jsonString = j.dump(4);
+        ImGui::InputTextMultiline("##SeedFinderExportJSON", const_cast<char*>(jsonString.c_str()), jsonString.size(),
+                                  {ImGui::GetWindowSize().x - (gSectionMarginHor * 2), ImGui::GetWindowSize().y - ImGui::GetCursorPosY() - 50},
+                                  ImGuiInputTextFlags_ReadOnly | ImGuiInputTextFlags_AutoSelectAll);
+
+        ImGui::SetCursorPosX(gSectionMarginHor);
+        if (ImGui::Button("Back##SeedFinderBackFromExportToMain"))
+        {
+            mInterfaceState = InterfaceState::MAIN;
+        }
+    }
+
+    json SeedFinder::serialize()
+    {
+        json j;
+        j[kJSONVersion] = 1;
+        j[kJSONConfiguration][kJSONAmountOfSeeds] = mAmountToProcess;
+        if (mUseRandomSeeds)
+        {
+            j[kJSONConfiguration][kJSONUseRandomSeed] = mUseRandomSeeds;
+        }
+        else
+        {
+            j[kJSONConfiguration][kJSONStartSeed] = mStartSeed;
+        }
+        j[kJSONConfiguration][kJSONAntiFlickerFramecount] = mAntiFlickerFrameCount;
+        j[kJSONConfiguration][kJSONGoToJungle] = mGoToJungle;
+        j[kJSONConfiguration][kJSONGoToTidePool] = mGoToTidePool;
+        j[kJSONConfiguration][kJSONGoToCityOfGold] = mGoToCityOfGold;
+        j[kJSONConfiguration][kJSONGoToAbzu] = mGoToAbzu;
+        j[kJSONConfiguration][kJSONGoToDuat] = mGoToDuat;
+        j[kJSONConfiguration][kJSONGoToEggplantWorld] = mGoToEggplantWorld;
+
+        for (const auto& filter : mFilters)
+        {
+            j[kJSONFilters].push_back(filter->serialize());
+        }
+
+        return j;
+    }
+
+    void SeedFinder::unserialize(const json& o)
+    {
+        mFilters.clear();
+        mAmountToProcess = 10;
+        mUseRandomSeeds = true;
+        mStartSeed = 0;
+        mAntiFlickerFrameCount = 30;
+        mGoToJungle = true;
+        mGoToTidePool = true;
+        mGoToCityOfGold = false;
+        mGoToAbzu = false;
+        mGoToDuat = false;
+        mGoToEggplantWorld = false;
+
+        try
+        {
+            if (o.contains(kJSONVersion))
+            {
+                auto version = o.at(kJSONVersion).get<uint8_t>();
+                if (version == 1)
+                {
+                    if (o.contains(kJSONConfiguration))
+                    {
+                        auto config = o.at(kJSONConfiguration);
+                        if (config.contains(kJSONAmountOfSeeds))
+                        {
+                            mAmountToProcess = config.at(kJSONAmountOfSeeds).get<uint32_t>();
+                        }
+                        if (config.contains(kJSONUseRandomSeed))
+                        {
+                            mUseRandomSeeds = config.at(kJSONUseRandomSeed).get<bool>();
+                        }
+                        if (config.contains(kJSONStartSeed))
+                        {
+                            mStartSeed = config.at(kJSONStartSeed).get<uint32_t>();
+                        }
+                        if (config.contains(kJSONAntiFlickerFramecount))
+                        {
+                            mAntiFlickerFrameCount = config.at(kJSONAntiFlickerFramecount).get<uint32_t>();
+                        }
+                        if (config.contains(kJSONGoToJungle))
+                        {
+                            mGoToJungle = config.at(kJSONGoToJungle).get<bool>();
+                        }
+                        if (config.contains(kJSONGoToTidePool))
+                        {
+                            mGoToTidePool = config.at(kJSONGoToTidePool).get<bool>();
+                        }
+                        if (config.contains(kJSONGoToCityOfGold))
+                        {
+                            mGoToCityOfGold = config.at(kJSONGoToCityOfGold).get<bool>();
+                        }
+                        if (config.contains(kJSONGoToAbzu))
+                        {
+                            mGoToAbzu = config.at(kJSONGoToAbzu).get<bool>();
+                        }
+                        if (config.contains(kJSONGoToDuat))
+                        {
+                            mGoToDuat = config.at(kJSONGoToDuat).get<bool>();
+                        }
+                        if (config.contains(kJSONGoToEggplantWorld))
+                        {
+                            mGoToEggplantWorld = config.at(kJSONGoToEggplantWorld).get<bool>();
+                        }
+                    }
+                    if (o.contains(kJSONFilters))
+                    {
+                        for (const auto& filterEntry : o.at(kJSONFilters))
+                        {
+                            if (filterEntry.contains(kJSONFilterID))
+                            {
+                                auto filterID = filterEntry.at(kJSONFilterID).get<std::string>();
+                                auto filter = createFilterForIdentifier(filterID);
+                                if (filter != nullptr)
+                                {
+                                    auto result = filter->unserialize(filterEntry);
+                                    if (!result.empty())
+                                    {
+                                        mUnserializationError = result;
+                                        return;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    mUnserializationError = "Version mismatch, can't read this version";
+                }
+            }
+        }
+        catch (const json::exception& e)
+        {
+            mUnserializationError = e.what();
+        }
+        catch (...)
+        {
+            mUnserializationError = "Exception occurred while parsing the provided JSON data";
         }
     }
 
@@ -677,7 +857,7 @@ namespace SeedFinder
 
         mTimeStart = std::chrono::steady_clock::now();
 
-        mCurrentSeed = msStartSeed;
+        mCurrentSeed = mStartSeed;
         if (mUseRandomSeeds)
         {
             mCurrentSeed = nextSeed(0);

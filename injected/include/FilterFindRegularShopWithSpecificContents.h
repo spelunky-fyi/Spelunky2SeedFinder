@@ -10,7 +10,13 @@ namespace SeedFinder
       public:
         explicit FilterFindRegularShopWithSpecificContents(SeedFinder* seedFinder);
         ~FilterFindRegularShopWithSpecificContents() override = default;
+
+        json serialize() const override;
+        std::string unserialize(const json& j) override;
+
         static std::string title();
+        static std::string uniqueIdentifier();
+        static std::unique_ptr<FilterFindRegularShopWithSpecificContents> instantiate(SeedFinder* seedFinder);
 
       private:
         constexpr static size_t cShopItemsCount = 36;
