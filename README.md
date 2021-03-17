@@ -16,6 +16,7 @@ To alleviate this a bit, an 'Anti flicker frames' configuration option was added
 
 ## Installation
 Download the release, and unzip it. Run the executable, then start Spelunky 2. The Seed Finder window should pop up a bit after Spelunky 2 starts. To actually use the Seed Finder, you must continue until you are inside a level.
+Do not combine with any other mods at the same time, just run the Seed Finder to find some seeds, quit, and either play regular Spelunky 2 or use Overlunky, ...
 
 ## Documentation
 
