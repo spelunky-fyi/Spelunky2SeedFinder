@@ -128,7 +128,7 @@ namespace SeedFinder
 
     void SeedFinder::render()
     {
-        if (true || mSeedFinderState != SeedFinderState::IDLE || (g_state->ingame && g_state->playing))
+        if (mSeedFinderState != SeedFinderState::IDLE || (g_state->ingame && g_state->playing))
         {
             switch (mInterfaceState)
             {
