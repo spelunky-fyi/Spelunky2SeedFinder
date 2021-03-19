@@ -108,6 +108,8 @@ When you are satisfied with your filter selection, click the "Find Seeds"-button
 * Choose up to four items that must be in a shopkeeper's shop
 * Choose the back layer to find items in the black market
 * Pick the levels on which the shop must appear (you'll probably want to pick only one level though, as the shop with the requested item(s) must appear on all picked levels!)
+* Be sure to check [the wiki](https://spelunky.fandom.com/wiki/Shop) to see which items can appear together in a shop. Don't waste your time searching for impossible combinations!
+* The contents of presents are also searched. If you were searching for a jetpack, and you see three other items and a present, that means the present contains the jetpack.
 
 #### Filter: Find sisters
 * Checks whether the door that accesses Parsley, Parsnip, and Parmesan is accessible without bombs
