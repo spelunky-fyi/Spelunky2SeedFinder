@@ -146,7 +146,7 @@ When you are satisfied with your filter selection, click the "Find Seeds"-button
 * The deeper a level you choose, the longer it takes for each seed to process. That's because every preceeding level needs to be generated, you can't just skip to e.g. 4-2, because the level generation will be different compared to if you followed the path from 1-1, 1-2, ... to 4-2. You can experiment with this yourself by using Overlunky: load a specific seed, and play the first two levels, look at what 1-3 looks like. Then restart the seed, and create a warp door to 1-3, and you'll notice it looks completely different. So, unfortunately it seems that individual levels depend on the preceeding levels. When you request a filter that applies to level 7-4, all the preceding levels have to be generated, taking up a lot of time.
 
 ## Troubleshooting
-* On launch, it shows an error dialog because it's missing a dll file → copy the Spelunky2Seedinder.exe and .dll into your Spelunky 2 folder (next to Spel2.exe) and launch it from there.
+* On launch, it shows an error dialog because it's missing a dll file → copy the Spelunky2SeedFinder.exe and .dll files into your Spelunky 2 folder (next to Spel2.exe) and launch it from there.
 
 ## Contact
 * [@zappatic](https://twitter.com/zappatic) on Twitter
