@@ -14,6 +14,7 @@ namespace SeedFinder
     ImFont* SeedFinderUI::msBigFont = nullptr;
     std::chrono::system_clock::time_point SeedFinderUI::msMouseMovedTime = std::chrono::system_clock::now();
     ImVec2 SeedFinderUI::msMouseLastPosition = ImVec2(0, 0);
+    bool SeedFinderUI::msHideUI = false;
 
     void SeedFinderUI::initialize(SeedFinder* seedFinder)
     {
@@ -57,16 +58,24 @@ namespace SeedFinder
             return false;
         }
 
+        if (wParam == 0x7a) // F11
+        {
+            msHideUI = !msHideUI;
+        }
+
         return true;
     }
 
     void SeedFinderUI::draw()
     {
-        ImGui::SetNextWindowPos({0, 0}, ImGuiCond_FirstUseEver);
-        ImGui::SetNextWindowSize({600, ImGui::GetIO().DisplaySize.y / 2}, ImGuiCond_FirstUseEver);
-        ImGui::Begin(msWindowTitle.c_str());
-        msSeedFinder->render();
-        ImGui::End();
+        if (!msHideUI)
+        {
+            ImGui::SetNextWindowPos({0, 0}, ImGuiCond_FirstUseEver);
+            ImGui::SetNextWindowSize({600, ImGui::GetIO().DisplaySize.y / 2}, ImGuiCond_FirstUseEver);
+            ImGui::Begin(msWindowTitle.c_str());
+            msSeedFinder->render();
+            ImGui::End();
+        }
     }
 
     void SeedFinderUI::postDraw()

@@ -30,5 +30,6 @@ namespace SeedFinder
         static ImFont* msBigFont;
         static std::chrono::system_clock::time_point msMouseMovedTime;
         static ImVec2 msMouseLastPosition;
+        static bool msHideUI;
     };
 } // namespace SeedFinder

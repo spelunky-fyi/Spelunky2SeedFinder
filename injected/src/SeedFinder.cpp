@@ -145,9 +145,13 @@ namespace SeedFinder
         }
         else
         {
-            const char* caption = "To search for seeds, please make sure you are in an actual level.";
+            const char* caption = "To search for seeds, please make sure you are in an actual level";
             ImGui::SetCursorPos(ImVec2((ImGui::GetWindowSize().x / 2.) - (ImGui::CalcTextSize(caption).x / 2.), ImGui::GetCursorPosY() + 40));
             ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f), caption);
+
+            const char* caption2 = "Press F11 to hide/show this window";
+            ImGui::SetCursorPos(ImVec2((ImGui::GetWindowSize().x / 2.) - (ImGui::CalcTextSize(caption2).x / 2.), ImGui::GetCursorPosY() + 40));
+            ImGui::Text(caption2);
         }
     }
 
