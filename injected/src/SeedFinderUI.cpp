@@ -76,6 +76,29 @@ namespace SeedFinder
             msSeedFinder->render();
             ImGui::End();
         }
+
+        auto& io = ImGui::GetIO();
+        ImGui::SetNextWindowSize(io.DisplaySize);
+        ImGui::SetNextWindowPos({0, 0});
+        ImGui::Begin("Clickhandler", NULL,
+                     ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse |
+                         ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNavInputs |
+                         ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoBackground);
+
+        ImGui::InvisibleButton("canvas", ImGui::GetContentRegionMax(), ImGuiButtonFlags_MouseButtonRight);
+
+        if (ImGui::IsMouseClicked(1) && ImGui::IsWindowFocused())
+        {
+            auto state = State::get();
+            auto player = state.items()->player(0);
+            if (player != nullptr)
+            {
+                ImVec2 mpos = normalize(io.MousePos);
+                const auto [clickX, clickY] = state.click_position(mpos.x, mpos.y);
+                player->teleport_abs(clickX, clickY, 0, 0);
+            }
+        }
+        ImGui::End();
     }
 
     void SeedFinderUI::postDraw()
@@ -99,4 +122,21 @@ namespace SeedFinder
         }
     }
 
+    ImVec2 SeedFinderUI::normalize(ImVec2 pos)
+    {
+        ImGuiIO& io = ImGui::GetIO();
+        ImVec2 res = io.DisplaySize;
+        if (res.x / res.y > 1.78)
+        {
+            pos.x -= (res.x - res.y / 9 * 16) / 2;
+            res.x = res.y / 9 * 16;
+        }
+        else if (res.x / res.y < 1.77)
+        {
+            pos.y -= (res.y - res.x / 16 * 9) / 2;
+            res.y = res.x / 16 * 9;
+        }
+        ImVec2 normal = ImVec2((pos.x - res.x / 2) * (1.0 / (res.x / 2)), -(pos.y - res.y / 2) * (1.0 / (res.y / 2)));
+        return normal;
+    }
 } // namespace SeedFinder

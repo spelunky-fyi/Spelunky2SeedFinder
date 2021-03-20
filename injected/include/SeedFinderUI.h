@@ -31,5 +31,6 @@ namespace SeedFinder
         static std::chrono::system_clock::time_point msMouseMovedTime;
         static ImVec2 msMouseLastPosition;
         static bool msHideUI;
+        static ImVec2 normalize(ImVec2 pos);
     };
 } // namespace SeedFinder
