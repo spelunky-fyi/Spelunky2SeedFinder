@@ -58,6 +58,9 @@ namespace SeedFinder
     const char* SeedFinder::kJSONItem = "item";
     const char* SeedFinder::kJSONMinimum = "minimum";
 
+    const char* SeedFinder::msComboWarpOptions[cWarpOptionsCount] = {"1-1", "1-2", "1-3",       "Quillback", "2-1", "2-2", "2-3",    "2-4", "Olmec", "4-1", "4-2",
+                                                                     "4-3", "4-4", "Ice caves", "6-1",       "6-2", "6-3", "Tiamat", "7-1", "7-2",   "7-3", "Hundun"};
+
     SeedFinder::SeedFinder()
     {
         mFilterTitles = std::map<std::string, std::string, bool (*)(const std::string&, const std::string&)>(
@@ -401,9 +404,56 @@ namespace SeedFinder
                 if (ImGui::Button(fmt::format("{:08X}##SeedFinderLoadSeed{}", foundSeed, foundSeed).c_str(), ImVec2(seedButtonWidth, 0)))
                 {
                     setGameSeed(foundSeed);
+
+                    if (mComboWarpChosenDepth > 0)
+                    {
+                        mSafeWarpFrameCounter = cSafeWarpFrames;
+                        mSafeWarpCurrentDepth = 0;
+                        mSafeWarpMaxDepth = mComboWarpChosenDepth;
+                        mSeedFinderState = SeedFinderState::SAFE_WARP;
+                    }
                 }
             }
             ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 10);
+
+            auto state = State::get();
+            ImGui::SetCursorPosX(gSectionMarginHor);
+            if (ImGui::Checkbox("God mode##SeedFinderGodMode", &mGodMode))
+            {
+                state.godmode(mGodMode);
+            }
+
+            ImGui::SameLine();
+            if (ImGui::Checkbox("Zoom out##SeedFinderZoomOut", &mZoomOut))
+            {
+                if (mZoomOut)
+                {
+                    state.zoom(29.87);
+                }
+                else
+                {
+                    state.zoom(13.5);
+                }
+            }
+
+            ImGui::SetCursorPosX(gSectionMarginHor);
+            ImGui::AlignTextToFramePadding();
+            ImGui::Text("Warp to :");
+            ImGui::SameLine();
+            ImGui::PushItemWidth(120);
+            if (ImGui::BeginCombo(fmt::format("##SeedFinderWarpToLevelCombo{}", fmt::ptr(this)).c_str(), mComboWarpChosenLevel))
+            {
+                for (auto i = 0; i < cWarpOptionsCount; ++i)
+                {
+                    bool isSelected = (mComboWarpChosenLevel == msComboWarpOptions[i]);
+                    if (ImGui::Selectable(msComboWarpOptions[i], isSelected))
+                    {
+                        mComboWarpChosenLevel = msComboWarpOptions[i];
+                        mComboWarpChosenDepth = i;
+                    }
+                }
+                ImGui::EndCombo();
+            }
         }
 
         handleState();
@@ -843,6 +893,24 @@ namespace SeedFinder
             break;
         case SeedFinderState::CLEANUP:
             cleanUp();
+            break;
+        case SeedFinderState::SAFE_WARP:
+            --mSafeWarpFrameCounter;
+            if (mSafeWarpFrameCounter == 0)
+            {
+                auto warpInfo = warpInfoForDepth(mSafeWarpCurrentDepth);
+                g_state->world_next = warpInfo.world;
+                g_state->level_next = warpInfo.level;
+                g_state->theme_next = warpInfo.theme;
+                g_state->loading = 1;
+
+                mSafeWarpCurrentDepth++;
+                mSafeWarpFrameCounter = cSafeWarpFrames;
+                if (mSafeWarpCurrentDepth > mSafeWarpMaxDepth)
+                {
+                    mSeedFinderState = SeedFinderState::IDLE;
+                }
+            }
             break;
         }
     }

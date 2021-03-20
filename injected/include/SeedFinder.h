@@ -77,7 +77,8 @@ namespace SeedFinder
             INIT,
             EXECUTE_LOAD_SEED,
             EXECUTE_FILTERS,
-            CLEANUP
+            CLEANUP,
+            SAFE_WARP
         };
 
         enum class InterfaceState
@@ -110,6 +111,8 @@ namespace SeedFinder
         std::vector<uint32_t> mFoundSeeds;
         std::chrono::steady_clock::time_point mTimeStart;
         bool mNextLevelIsEggplantWorld;
+        bool mGodMode = false;
+        bool mZoomOut = false;
 
         // filters state
         std::vector<std::unique_ptr<Filter>> mFilters = {};
@@ -117,7 +120,14 @@ namespace SeedFinder
         std::map<std::string, std::string, bool (*)(const std::string&, const std::string&)> mFilterTitles;        // filter title -> filter identifier
         std::vector<EntityItem> mAllEntities = {};
         const char* mComboAddFilterChosenTitle = nullptr;
+        const char* mComboWarpChosenLevel = msComboWarpOptions[0];
+        uint8_t mComboWarpChosenDepth = 0;
         std::string mUnserializationError = "";
+
+        const uint8_t cSafeWarpFrames = 30;
+        uint8_t mSafeWarpFrameCounter = 0;
+        uint8_t mSafeWarpCurrentDepth = 0;
+        uint8_t mSafeWarpMaxDepth = 0;
 
         void registerFilter(const std::string& uniqueIdentifier, const std::string& filterTitle, std::function<std::unique_ptr<Filter>(SeedFinder*)> instantiator);
         Filter* createFilterForIdentifier(const std::string& filterIdentifier);
@@ -147,6 +157,9 @@ namespace SeedFinder
 #endif
 
         static uint16_t mEggplantMotherStatueHandID;
+
+        constexpr static size_t cWarpOptionsCount = 22;
+        static const char* msComboWarpOptions[cWarpOptionsCount];
 
         static const uint8_t THEME_DWELLING = 1;
         static const uint8_t THEME_JUNGLE = 2;
