@@ -15,7 +15,7 @@ When using the Seed Finder on the early levels (e.g. solely on 1-1) they will lo
 To alleviate this a bit, an 'Anti flicker frames' configuration option was added, where you can adjust how many frames the Seed Finder must wait after loading a different seed. Be safe, run Spelunky 2 in windowed mode, and drag it completely off screen when searching for seeds. Don't complain if this broke your monitor or pc!
 
 ## Installation
-Download the release, and unzip it. Run the executable, then start Spelunky 2. The Seed Finder window should pop up a bit after Spelunky 2 starts. To actually use the Seed Finder, you must continue until you are inside a level.
+Download the release, and unzip it. Copy the exe and dll file into your Spelunky 2 folder (otherwise it will complain it can't find MSVCP140.dll). Run the executable, then start Spelunky 2. The Seed Finder window should pop up a bit after Spelunky 2 starts. To actually use the Seed Finder, you must continue until you are inside a level.
 Do not combine with any other mods at the same time, just run the Seed Finder to find some seeds, quit, and either play regular Spelunky 2 or use Overlunky, ...
 
 ## Documentation
@@ -108,6 +108,8 @@ When you are satisfied with your filter selection, click the "Find Seeds"-button
 * Choose up to four items that must be in a shopkeeper's shop
 * Choose the back layer to find items in the black market
 * Pick the levels on which the shop must appear (you'll probably want to pick only one level though, as the shop with the requested item(s) must appear on all picked levels!)
+* Be sure to check [the wiki](https://spelunky.fandom.com/wiki/Shop) to see which items can appear together in a shop. Don't waste your time searching for impossible combinations!
+* The contents of presents are also searched. If you were searching for a jetpack, and you see three other items and a present, that means the present contains the jetpack.
 
 #### Filter: Find sisters
 * Checks whether the door that accesses Parsley, Parsnip, and Parmesan is accessible without bombs
@@ -144,3 +146,13 @@ When you are satisfied with your filter selection, click the "Find Seeds"-button
 * Can't filter on the accessibility of Waddler in 7-1, because his presence is determined by having dropped off something with him earlier. Maybe Waddler's door is always accessible though.
 * You can't set the shopkeeper aggro level or any other quest flag that influences level generation later on (occurrance of shopkeeper outposts, Sparrow's hideout, ...)
 * The deeper a level you choose, the longer it takes for each seed to process. That's because every preceeding level needs to be generated, you can't just skip to e.g. 4-2, because the level generation will be different compared to if you followed the path from 1-1, 1-2, ... to 4-2. You can experiment with this yourself by using Overlunky: load a specific seed, and play the first two levels, look at what 1-3 looks like. Then restart the seed, and create a warp door to 1-3, and you'll notice it looks completely different. So, unfortunately it seems that individual levels depend on the preceeding levels. When you request a filter that applies to level 7-4, all the preceding levels have to be generated, taking up a lot of time.
+* The collapsible filters you add don't actually collapse :/
+
+
+## Troubleshooting
+* On launch, it shows an error dialog because it's missing a dll file → copy the Spelunky2SeedFinder.exe and .dll files into your Spelunky 2 folder (next to Spel2.exe) and launch it from there.
+
+## Contact
+* [@zappatic](https://twitter.com/zappatic) on Twitter
+* In case of a bug, please create a Github issue and provide the exported JSON of your filter and describe the problem in detail
+* If you have an idea for a filter, let me know
