@@ -821,7 +821,6 @@ namespace SeedFinder
         case 21:
             return WarpInfo(7, 4, THEME_HUNDUN);
         default:
-            DEBUG("Invalid depth level specified");
             return WarpInfo(1, 1, THEME_DWELLING);
         }
     }

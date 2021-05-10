@@ -25,7 +25,7 @@ namespace SeedFinder
         register_post_draw(&postDraw);
     }
 
-    void SeedFinderUI::initImGui()
+    void SeedFinderUI::initImGui(struct ImGuiContext*)
     {
         ImGuiIO& io = ImGui::GetIO();
         io.FontAllowUserScaling = true;

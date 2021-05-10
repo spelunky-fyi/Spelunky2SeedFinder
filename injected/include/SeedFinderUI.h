@@ -19,7 +19,7 @@ namespace SeedFinder
 
       private:
         static bool processKeys(UINT nCode, WPARAM wParam, LPARAM lParam);
-        static void initImGui();
+        static void initImGui(struct ImGuiContext*);
         static void draw();
         static void postDraw();
         static void mouseActivity();

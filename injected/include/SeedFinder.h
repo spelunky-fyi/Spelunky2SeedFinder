@@ -8,6 +8,7 @@
 #include <memory>
 #include <nlohmann/json.hpp>
 #include <vector>
+#include <fmt/format.h>
 
 using json = nlohmann::json;
 

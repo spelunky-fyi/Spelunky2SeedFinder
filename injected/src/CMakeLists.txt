@@ -49,4 +49,5 @@ target_sources(Spelunky2SeedFinderInjected
         ../../3rdParty/overlunky/src/game_api/thread_utils.cpp
         ../../3rdParty/overlunky/src/game_api/render_api.cpp
         ../../3rdParty/overlunky/src/game_api/window_api.cpp
+        ../../3rdParty/overlunky/src/game_api/game_manager.cpp
 )
