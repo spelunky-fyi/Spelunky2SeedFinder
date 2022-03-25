@@ -8,7 +8,7 @@ namespace SeedFinder
     std::vector<uint16_t> SimplifiedLevel::msNonSolidBlockIDs = {};
     uint16_t SimplifiedLevel::msPushBlockID = 0;
 
-    SimplifiedLevel::SimplifiedLevel(SeedFinder* seedFinder, uint16_t chunkWidth, uint16_t chunkheight, const std::vector<Entity*> entities, bool treatPushBlockAsSolid,
+    SimplifiedLevel::SimplifiedLevel(SeedFinder* seedFinder, uint16_t chunkWidth, uint16_t chunkheight, const EntityList::EntityRange entities, bool treatPushBlockAsSolid,
                                      const std::unordered_map<uint16_t, uint8_t>& substitutions)
         : mSeedFinder(seedFinder), mChunkWidth(chunkWidth), mChunkHeight(chunkheight)
     {

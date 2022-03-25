@@ -328,7 +328,7 @@ namespace SeedFinder
     {
         mDrillX = 0;
         auto state = State::get();
-        mFrontLayerEntities = state.layer(0)->items();
+        mFrontLayerEntities = state.layer(0)->all_entities.entities();
         for (Entity* entity : mFrontLayerEntities)
         {
             if (entity->type->id == msDrillIndicatorID)

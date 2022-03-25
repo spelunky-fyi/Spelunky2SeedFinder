@@ -93,8 +93,8 @@ namespace SeedFinder
     bool FilterFindSisters::execute(uint8_t currentWorld, uint8_t currentLevel)
     {
         auto state = State::get();
-        auto frontLayerEntities = state.layer(0)->items();
-        auto backLayerEntities = state.layer(1)->items();
+        auto frontLayerEntities = state.layer(0)->all_entities.entities();
+        auto backLayerEntities = state.layer(1)->all_entities.entities();
 
         uint8_t startDoorX = 0;
         uint8_t startDoorY = 0;

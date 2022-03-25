@@ -219,7 +219,7 @@ namespace SeedFinder
         mUdjatKeyY = 0;
 
         auto state = State::get();
-        mFrontLayerEntities = state.layer(0)->items();
+        mFrontLayerEntities = state.layer(0)->all_entities.entities();
         for (Entity* entity : mFrontLayerEntities)
         {
             if (entity->type->id == Filter::msStartDoorID)
@@ -248,7 +248,7 @@ namespace SeedFinder
         mUdjatDoorY = 0;
 
         auto state = State::get();
-        mBackLayerEntities = state.layer(1)->items();
+        mBackLayerEntities = state.layer(1)->all_entities.entities();
 
         auto doorSearchRect = Rect();
         for (Entity* entity : mBackLayerEntities)

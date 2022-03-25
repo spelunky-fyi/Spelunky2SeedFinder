@@ -58,7 +58,7 @@ namespace SeedFinder
     bool FilterFindQuillbackObstruction::execute(uint8_t currentWorld, uint8_t currentLevel)
     {
         auto state = State::get();
-        auto frontLayerEntities = state.layer(0)->items();
+        auto frontLayerEntities = state.layer(0)->all_entities.entities();
         auto simpleLevel = SimplifiedLevel(mSeedFinder, state.ptr()->w, state.ptr()->h, frontLayerEntities, true);
 
         const auto findDoor = [frontLayerEntities](const Rect& rect, uint16_t doorID) -> std::pair<uint8_t, uint8_t> {

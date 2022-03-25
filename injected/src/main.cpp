@@ -75,7 +75,7 @@ extern "C" __declspec(dllexport) void run(DWORD pid)
         std::this_thread::sleep_for(100ms);
     }
 
-    auto api = RenderAPI::get();
+    auto& api = RenderAPI::get();
     SeedFinder::SeedFinderUI::initialize(seedFinder.get());
     init_hooks((void*)api.swap_chain());
     DEBUG("Running in debug mode.");

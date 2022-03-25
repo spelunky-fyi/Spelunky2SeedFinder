@@ -57,7 +57,7 @@ namespace SeedFinder
     bool FilterFindVault::execute(uint8_t currentWorld, uint8_t currentLevel)
     {
         auto state = State::get();
-        auto entities = state.layer(1)->items();
+        auto entities = state.layer(1)->all_entities.entities();
 
         for (Entity* entity : entities)
         {

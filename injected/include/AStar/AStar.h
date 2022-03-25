@@ -167,10 +167,10 @@ namespace SeedFinder
             return mState;
         }
 
-        void addSuccessor(UserState& state)
+        void addSuccessor(UserState state)
         {
             auto node = allocateNode();
-            node->mUserState = state;
+            node->mUserState = std::move(state);
             mSuccessors.emplace_back(node);
         }
 

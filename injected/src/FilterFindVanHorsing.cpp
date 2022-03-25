@@ -66,8 +66,8 @@ namespace SeedFinder
     bool FilterFindVanHorsing::execute(uint8_t currentWorld, uint8_t currentLevel)
     {
         auto state = State::get();
-        auto frontLayerEntities = state.layer(0)->items();
-        auto backLayerEntities = state.layer(1)->items();
+        auto frontLayerEntities = state.layer(0)->all_entities.entities();
+        auto backLayerEntities = state.layer(1)->all_entities.entities();
         auto simpleLevel = SimplifiedLevel(mSeedFinder, state.ptr()->w, state.ptr()->h, frontLayerEntities);
 
         // locate the start door

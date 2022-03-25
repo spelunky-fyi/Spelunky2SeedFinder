@@ -2,6 +2,8 @@
 
 #include "SeedFinderUI.h"
 #include "SeedFinder.h"
+#include "entities_chars.hpp"
+#include "rpc.hpp"
 #include "window_api.hpp"
 #include <codecvt>
 #include <sstream>
@@ -90,7 +92,7 @@ namespace SeedFinder
         if (ImGui::IsMouseClicked(1) && ImGui::IsWindowFocused())
         {
             auto state = State::get();
-            auto player = state.items()->player(0);
+            auto player = get_players()[0];
             if (player != nullptr)
             {
                 ImVec2 mpos = normalize(io.MousePos);

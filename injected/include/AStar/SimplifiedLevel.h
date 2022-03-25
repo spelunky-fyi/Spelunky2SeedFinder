@@ -20,7 +20,7 @@ namespace SeedFinder
          * level
          *
          */
-        SimplifiedLevel(SeedFinder* seedFinder, uint16_t chunkWidth, uint16_t chunkheight, const std::vector<Entity*> entities, bool treatPushBlockAsSolid = false,
+        SimplifiedLevel(SeedFinder* seedFinder, uint16_t chunkWidth, uint16_t chunkheight, const EntityList::EntityRange entities, bool treatPushBlockAsSolid = false,
                         const std::unordered_map<uint16_t, uint8_t>& substitutions = {});
         virtual ~SimplifiedLevel() = default;
 
