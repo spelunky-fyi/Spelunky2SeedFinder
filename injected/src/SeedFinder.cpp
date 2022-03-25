@@ -307,7 +307,7 @@ namespace SeedFinder
         ImGui::SameLine();
         if (ImGui::Button("Add filter##SeedFinderAddFilter"))
         {
-            if (mFilterTitles.count(mComboAddFilterChosenTitle) > 0)
+            if (mComboAddFilterChosenTitle != nullptr && mFilterTitles.count(mComboAddFilterChosenTitle) > 0)
             {
                 createFilterForIdentifier(mFilterTitles.at(mComboAddFilterChosenTitle));
             }
