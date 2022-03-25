@@ -685,7 +685,7 @@ namespace SeedFinder
         {
             std::random_device r;
             std::default_random_engine e(r());
-            std::uniform_int_distribution<int> uniform_dist(0, 0xFFFFFFFF);
+            std::uniform_int_distribution<int> uniform_dist(0, std::numeric_limits<int>::max());
             return uniform_dist(e);
         }
         else
