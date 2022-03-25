@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.17)
 project(Spelunky2SeedFinder)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ../bin)
 
 execute_process(
@@ -12,10 +12,13 @@ execute_process(
 )
 add_definitions("-DGIT_VERSION=${GIT_VERSION}")
 add_definitions("-D_ITERATOR_DEBUG_LEVEL=0")
+add_definitions("-DNOMINMAX")
 
 set(FMT_MASTER_PROJECT OFF)
-add_subdirectory(3rdParty/overlunky/src/fmt)
-
+option(BUILD_OVERLUNKY CACHE OFF)
+option(BUILD_INFO_DUMP CACHE OFF)
+option(BUILD_SPEL2_DLL CACHE OFF)
+add_subdirectory(3rdParty/overlunky)
 add_subdirectory(injector)
 add_subdirectory(injected)
 
