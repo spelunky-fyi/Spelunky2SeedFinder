@@ -1,8 +1,11 @@
 #include "FilterFindPotWithSpecificContents.h"
 #include "AStar/SimplifiedLevel.h"
 #include "SeedFinder.h"
-#include "rpc.hpp"
+
 #include <iostream>
+
+#include "entities_items.hpp"
+#include "rpc.hpp"
 
 namespace SeedFinder
 {

@@ -2,6 +2,8 @@
 
 #include "SeedFinderUI.h"
 #include "SeedFinder.h"
+#include "entities_chars.hpp"
+#include "rpc.hpp"
 #include "window_api.hpp"
 #include <codecvt>
 #include <sstream>

@@ -2,6 +2,8 @@
 #include "FilterUI.h"
 #include "SeedFinder.h"
 
+#include "entities_items.hpp"
+
 namespace SeedFinder
 {
     const char* FilterFindCrateWithSpecificContents::msComboItemOptions[] = {"Bomb Bag",   "Bomb Box",  "Boomerang", "Camera",     "Cape",        "Climbing Gloves", "Compass",        "Crossbow",

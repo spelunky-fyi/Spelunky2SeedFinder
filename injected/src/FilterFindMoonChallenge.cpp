@@ -2,6 +2,8 @@
 #include "AStar/SimplifiedLevel.h"
 #include "SeedFinder.h"
 
+#include "entities_items.hpp"
+
 namespace SeedFinder
 {
     uint16_t FilterFindMoonChallenge::msTunID = 0;

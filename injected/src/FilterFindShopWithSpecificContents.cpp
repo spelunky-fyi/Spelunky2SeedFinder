@@ -1,6 +1,8 @@
 #include "FilterFindShopWithSpecificContents.h"
 #include "SeedFinder.h"
 
+#include "entities_items.hpp"
+
 namespace SeedFinder
 {
     size_t FilterFindShopWithSpecificContents::msBGShopID = 0;
