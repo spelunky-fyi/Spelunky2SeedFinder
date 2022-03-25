@@ -39,8 +39,8 @@ namespace SeedFinder
         uint8_t mUdjatKeyY = 0;
         uint8_t mCurrentWorld;
         uint8_t mCurrentLevel;
-        std::vector<Entity*> mFrontLayerEntities;
-        std::vector<Entity*> mBackLayerEntities;
+        EntityList::EntityRange mFrontLayerEntities;
+        EntityList::EntityRange mBackLayerEntities;
         bool mUdjatKeyFound = false;
         uint8_t mUdjatKeyFoundOnLevel = 0;
 

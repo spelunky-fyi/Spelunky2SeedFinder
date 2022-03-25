@@ -58,7 +58,7 @@ namespace SeedFinder
     bool FilterFindShopWithSpecificContents::execute(uint8_t currentWorld, uint8_t currentLevel)
     {
         auto state = State::get();
-        const auto checkForMatchingShops = [&](const std::vector<Entity*>& entities) {
+        const auto checkForMatchingShops = [&](const EntityList::EntityRange& entities) {
             for (const Entity* shopkeeperEntity : entities)
             {
                 if (shopkeeperEntity->type->id == shopKeeperID())
@@ -143,14 +143,14 @@ namespace SeedFinder
         auto chosenLayer = searchInLayer();
         if (*chosenLayer == LayerChoice::FRONT || *chosenLayer == LayerChoice::ALL)
         {
-            if (checkForMatchingShops(state.layer(0)->items()))
+            if (checkForMatchingShops(state.layer(0)->all_entities.entities()))
             {
                 found = true;
             }
         }
         if (!found && (*chosenLayer == LayerChoice::BACK || *chosenLayer == LayerChoice::ALL))
         {
-            if (checkForMatchingShops(state.layer(1)->items()))
+            if (checkForMatchingShops(state.layer(1)->all_entities.entities()))
             {
                 found = true;
             }

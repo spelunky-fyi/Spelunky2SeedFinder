@@ -65,7 +65,7 @@ namespace SeedFinder
     bool FilterFindAnkhSkip::execute(uint8_t currentWorld, uint8_t currentLevel)
     {
         auto state = State::get();
-        auto frontLayerEntities = state.layer(0)->items();
+        auto frontLayerEntities = state.layer(0)->all_entities.entities();
 
         auto layerDoorSatisfied = true;
         if (mCheckLayerDoor) // can't seem to find a seed that satisfies this, maybe layer doors below the lava have been patched out

@@ -833,7 +833,7 @@ namespace SeedFinder
         }
 
         auto state = State::get();
-        for (const auto item : state.layer(0)->items())
+        for (const auto item : state.layer(0)->all_entities.entities())
         {
             if (item->type->id == mEggplantMotherStatueHandID)
             {
@@ -843,7 +843,7 @@ namespace SeedFinder
         mNextLevelIsEggplantWorld = false;
     }
 
-    std::vector<Entity*> SeedFinder::entitiesInRect(const Rect& rect, const std::vector<Entity*>& items)
+    std::vector<Entity*> SeedFinder::entitiesInRect(const Rect& rect, const EntityList::EntityRange& items)
     {
         std::vector<Entity*> retVec;
         for (Entity* item : items)
@@ -1106,8 +1106,8 @@ namespace SeedFinder
         auto state = State::get();
         warp(world, level, theme);
 
-        auto front = state.layer(0)->items();
-        auto back = state.layer(1)->items();
+        auto front = state.layer(0)->all_entities.entities();
+        auto back = state.layer(1)->all_entities.entities();
 
         SHA256 sha;
 

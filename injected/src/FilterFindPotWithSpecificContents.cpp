@@ -80,7 +80,7 @@ namespace SeedFinder
         auto state = State::get();
 
         uint8_t foundAmount = 0;
-        const auto checkLayer = [&](const std::vector<Entity*>& items) {
+        const auto checkLayer = [&](const EntityList::EntityRange& items) {
             for (auto item : items)
             {
                 if (item->type->id == msPotID)
@@ -102,11 +102,11 @@ namespace SeedFinder
 
         if (mLayer == LayerChoice::FRONT || mLayer == LayerChoice::ALL)
         {
-            checkLayer(state.layer(0)->items());
+            checkLayer(state.layer(0)->all_entities.entities());
         }
         if (mLayer == LayerChoice::BACK || mLayer == LayerChoice::ALL)
         {
-            checkLayer(state.layer(1)->items());
+            checkLayer(state.layer(1)->all_entities.entities());
         }
         return foundAmount >= mMinimumAmount;
     }

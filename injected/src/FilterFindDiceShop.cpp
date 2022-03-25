@@ -59,7 +59,7 @@ namespace SeedFinder
     {
         // example seed 600741A0 on 1-3
         auto state = State::get();
-        auto entities = state.layer(0)->items();
+        auto entities = state.layer(0)->all_entities.entities();
 
         for (Entity* entity : entities)
         {

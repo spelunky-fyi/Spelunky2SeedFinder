@@ -32,7 +32,7 @@ namespace SeedFinder
         uint8_t mCurrentLevel;
         bool mBlackMarketFound = false;
         uint8_t mBlackMarketFoundOnLevel = 0;
-        std::vector<Entity*> mFrontLayerEntities;
+        EntityList::EntityRange mFrontLayerEntities;
 
         static uint16_t msHedjetID;
 

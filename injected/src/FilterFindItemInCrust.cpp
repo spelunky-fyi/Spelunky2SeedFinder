@@ -117,15 +117,14 @@ namespace SeedFinder
 
     bool FilterFindItemInCrust::execute(uint8_t currentWorld, uint8_t currentLevel)
     {
-        auto searchCrustItem = [&](std::vector<Entity*> entities) {
+        auto searchCrustItem = [&](EntityList::EntityRange entities) {
             for (Entity* entity : entities)
             {
-                if (entity->items.count > 0)
+                if (entity->items.size > 0)
                 {
-                    uint32_t* itemUIDs = (uint32_t*)entity->items.begin;
-                    for (auto x = 0; x < entity->items.count; ++x)
+                    for (auto uid : entity->items.uids())
                     {
-                        auto testEntity = get_entity_ptr(itemUIDs[x]);
+                        auto testEntity = get_entity_ptr(uid);
                         if (testEntity != nullptr && testEntity->type->id == mItemID)
                         {
                             Util::log(fmt::format("- FilterFindItemInCrust: found {} at {}, {}", mSeedFinder->entityName(mItemID), entity->x, entity->y));
@@ -142,7 +141,7 @@ namespace SeedFinder
         auto state = State::get();
         if (mLayer == LayerChoice::ALL || mLayer == LayerChoice::FRONT)
         {
-            auto success = searchCrustItem(state.layer(0)->items());
+            auto success = searchCrustItem(state.layer(0)->all_entities.entities());
             if (!success)
             {
                 satisfied = false;
@@ -150,7 +149,7 @@ namespace SeedFinder
         }
         if (mLayer == LayerChoice::ALL || mLayer == LayerChoice::BACK)
         {
-            auto success = searchCrustItem(state.layer(1)->items());
+            auto success = searchCrustItem(state.layer(1)->all_entities.entities());
             if (!success)
             {
                 satisfied = false;

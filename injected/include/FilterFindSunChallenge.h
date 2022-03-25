@@ -31,7 +31,7 @@ namespace SeedFinder
 
         uint8_t mCurrentWorld;
         uint8_t mCurrentLevel;
-        std::vector<Entity*> mFrontLayerEntities;
+        EntityList::EntityRange mFrontLayerEntities;
         bool mChallengeFound = false;
         uint8_t mChallengeFoundOnLevel = 0;
         uint8_t mTunX = 0;

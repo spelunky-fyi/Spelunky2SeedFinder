@@ -59,7 +59,7 @@ namespace SeedFinder
     bool FilterFindAltar::execute(uint8_t currentWorld, uint8_t currentLevel)
     {
         auto state = State::get();
-        auto entities = state.layer(0)->items();
+        auto entities = state.layer(0)->all_entities.entities();
 
         uint8_t startDoorX = 0;
         uint8_t startDoorY = 0;

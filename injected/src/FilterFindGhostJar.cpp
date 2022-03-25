@@ -63,8 +63,8 @@ namespace SeedFinder
     bool FilterFindGhostJar::execute(uint8_t currentWorld, uint8_t currentLevel)
     {
         auto state = State::get();
-        auto frontLayerEntities = state.layer(0)->items();
-        auto backLayerEntities = state.layer(1)->items();
+        auto frontLayerEntities = state.layer(0)->all_entities.entities();
+        auto backLayerEntities = state.layer(1)->all_entities.entities();
 
         // search for start door, in case we want to check accessibility
         uint8_t startDoorX = 0;
@@ -85,7 +85,7 @@ namespace SeedFinder
         // search for the ghost jar on both layers
         uint8_t ghostJarX = 0;
         uint8_t ghostJarY = 0;
-        const auto searchGhostJar = [&](const std::vector<Entity*> entities, LayerChoice layer) {
+        const auto searchGhostJar = [&](const EntityList::EntityRange entities, LayerChoice layer) {
             for (Entity* entity : entities)
             {
                 if (entity->type->id == msGhostJarID)

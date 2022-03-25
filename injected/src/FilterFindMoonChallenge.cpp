@@ -170,7 +170,7 @@ namespace SeedFinder
 
         auto mattockDurabilitySatisfied = false;
         auto state = State::get();
-        auto backLayerEntities = state.layer(1)->items();
+        auto backLayerEntities = state.layer(1)->all_entities.entities();
         for (Entity* entity : backLayerEntities)
         {
             if (entity->type->id == msMattockID)
@@ -246,7 +246,7 @@ namespace SeedFinder
         mTunX = 0;
         mTunY = 0;
         auto state = State::get();
-        mFrontLayerEntities = state.layer(0)->items();
+        mFrontLayerEntities = state.layer(0)->all_entities.entities();
         for (Entity* entity : mFrontLayerEntities)
         {
             if (entity->type->id == msTunID)

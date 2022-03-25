@@ -160,7 +160,7 @@ namespace SeedFinder
     void FilterFindBlackMarket::locateBlackMarket()
     {
         auto state = State::get();
-        mFrontLayerEntities = state.layer(1)->items();
+        mFrontLayerEntities = state.layer(1)->all_entities.entities();
         for (Entity* entity : mFrontLayerEntities)
         {
             if (entity->type->id == msHedjetID)

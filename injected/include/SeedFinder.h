@@ -50,7 +50,7 @@ namespace SeedFinder
         /**
          * @brief Looks up all the entities at a specific x,y coordinate
          */
-        std::vector<Entity*> entitiesInRect(const Rect& rect, const std::vector<Entity*>& items);
+        std::vector<Entity*> entitiesInRect(const Rect& rect, const EntityList::EntityRange& items);
 
         /**
          * @brief Retrieves the seed we are currently processing
