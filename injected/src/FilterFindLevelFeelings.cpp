@@ -187,11 +187,11 @@ namespace SeedFinder
         auto result = false;
         if (mComboChosenNecessity == msComboItemNecessities[0]) // must have
         {
-            result = ((stateMemory->hud_flags & flag) > 0);
+            result = ((stateMemory->level_flags & flag) > 0);
         }
         else // must not have
         {
-            result = ((stateMemory->hud_flags & flag) == 0);
+            result = ((stateMemory->level_flags & flag) == 0);
         }
 
         if (result)
