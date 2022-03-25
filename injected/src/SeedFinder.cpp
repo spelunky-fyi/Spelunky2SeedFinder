@@ -667,19 +667,7 @@ namespace SeedFinder
     {
         if (g_state != nullptr)
         {
-            auto memory = Memory::get();
-
-            // RevEng: Set hw write bp on state->feedcode, enter a seed in game and start the level
-            typedef void sgs_func(uint32_t dummy, uint32_t seed);
-            auto address = function_start(memory.at_exe(find_inst(memory.exe(), "\xC7\x41\x14\x01\x00\x00\x00\xC3\x48\x8b\x15"s, memory.after_bundle)));
-            static sgs_func* sgs = (sgs_func*)(address);
-
-            // Set the "screen_last" state to 0x0E, so the game thinks we came from the
-            // "Enter New Seed" menu item in-game. This way, the character selection
-            // screen is not shown, and we are immediately in game.
-            g_state->screen_last = 0x0E;
-            // First param is probably *this, but is not used in the function
-            sgs(0, seed);
+            ::set_seed(seed);
         }
     };
 
@@ -687,19 +675,7 @@ namespace SeedFinder
     {
         if (g_state != nullptr)
         {
-            auto memory = Memory::get();
-
-            typedef void w_func(struct StateMemory*, int);
-            auto address = function_start(memory.at_exe(find_inst(memory.exe(), "\x48\x89\x6c\x24\x58\x48\x98\x48\x89\x7c\x24\x60"s, memory.after_bundle)));
-            static w_func* w = (w_func*)(address);
-
-            g_state->world = world;
-            g_state->world_next = world;
-            g_state->level = level;
-            g_state->level_next = level;
-            g_state->theme = theme;
-            g_state->theme_next = theme;
-            w(g_state, 0);
+            ::warp(world, level, theme);
         }
     };
 
